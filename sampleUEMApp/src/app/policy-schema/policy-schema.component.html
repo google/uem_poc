@@ -1,0 +1,62 @@
+<!--
+Copyright 2022 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+-->
+<div [formGroup]="form">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>{{policyObj.policyDescription}}</mat-card-title>
+      <mat-card-subtitle>{{policyObj.schemaName}}</mat-card-subtitle>
+      <mat-card-subtitle>Source: {{getOUName(policyObj.inheritedOU)}}</mat-card-subtitle>
+      <div>
+        <button mat-raised-button [disabled]="isInherited(policyObj.inheritedOU)" (click)="inheritFromOU($event)">
+          Inherit
+        </button>
+      </div>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngFor="let field of policyObj.fieldDescriptions; let i = index">
+        <span>
+          <label [attr.for]="policyObj.schemaName+'.'+field.fName">{{field.fName}}</label>
+          <p>{{field.fDescription}}</p>
+          <div [ngSwitch]="field.fType">
+            
+            <mat-form-field [id]="policyObj.schemaName+'.'+field.fName" *ngSwitchCase="'TYPE_STRING'">
+              <mat-label>Enter value</mat-label>
+              <input matInput [value]="field.fValue === undefined ? '' : field.fValue" [formControlName]="policyObj.schemaName+'.'+field.fName" *ngIf="!valuesAvailable(field.fEnumList)">
+              <mat-select [formControlName]="policyObj.schemaName+'.'+field.fName" *ngIf="valuesAvailable(field.fEnumList)" [value]="field.fValue" multiple>
+                <mat-option *ngFor="let option of field.fEnumList" [value]="option.value">{{option.description}}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            
+            <mat-radio-group [id]="policyObj.schemaName+'.'+field.fName" *ngSwitchCase="'TYPE_BOOL'" aria-label="Select an option" [formControlName]="policyObj.schemaName+'.'+field.fName">
+              <mat-radio-button [checked]="field.fValue === true" value="true">True</mat-radio-button>
+              <mat-radio-button [checked]="field.fValue === false" value="false">False</mat-radio-button>
+            </mat-radio-group>
+          
+            <mat-form-field [id]="policyObj.schemaName+'.'+field.fName" *ngSwitchCase="'TYPE_ENUM'">
+              <mat-label>Select value</mat-label>
+              <mat-select [formControlName]="policyObj.schemaName+'.'+field.fName" [value]="field.fValue">
+                <mat-option *ngFor="let enumVal of field.fEnumList" [value]="enumVal.value">
+                  {{enumVal.value}}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </span>
+    </div>
+    </mat-card-content> 
+  </mat-card>
+</div>

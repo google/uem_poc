@@ -1,0 +1,32 @@
+<!--
+Copyright 2022 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+-->
+<mat-toolbar color="primary">
+  <h1> Sample UEM </h1>
+  <span class="button-spacer"></span>
+  <mat-form-field class="label-width">
+    <mat-label>Selected OU</mat-label>
+    <input matInput disabled [value]="selectedOU">
+  </mat-form-field>
+  <mat-form-field class="label-width">
+    <mat-label>Selected Category</mat-label>
+    <input matInput disabled [value]="selectedPolicySchema">
+  </mat-form-field>
+  <button mat-raised-button (click)="openDialog()">Edit</button>
+</mat-toolbar>
+
+<app-policy-list [policySchemaNS] = "selectedPolicyNS" [policies]="policiesObj" [orgId]="getOUID(selectedOU)" [ouList]="orgList"></app-policy-list>
+<router-outlet></router-outlet>
