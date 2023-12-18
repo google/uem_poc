@@ -17,17 +17,27 @@ limitations under the License.
 **********************************/
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { Policy } from '../dataObj/Policy';
-import { FormGroup } from '@angular/forms';
+import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 // import {MatBadgeModule} from '@angular/material/badge';
 import {MatChipInputEvent, MatChipsModule} from '@angular/material/chips';
 import { PolicyControlService } from '../policy-control.service';
 import { CallAPIService } from '../call-api.service';
 import { OrgData } from '../dataObj/OrgData';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { NgFor, NgSwitch, NgSwitchCase, NgIf } from '@angular/common';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 
 @Component({
-  selector: 'app-policy-schema',
-  templateUrl: './policy-schema.component.html',
-  styleUrls: ['./policy-schema.component.css']
+    selector: 'app-policy-schema',
+    templateUrl: './policy-schema.component.html',
+    styleUrls: ['./policy-schema.component.css'],
+    standalone: true,
+    imports: [ReactiveFormsModule, MatCardModule, MatButtonModule, NgFor, NgSwitch, NgSwitchCase, MatFormFieldModule, NgIf, MatInputModule, MatSelectModule, MatOptionModule, MatRadioModule]
 })
 export class PolicySchemaComponent implements OnInit{
 

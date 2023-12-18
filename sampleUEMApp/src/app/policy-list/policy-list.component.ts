@@ -18,18 +18,23 @@ limitations under the License.
 import { Component, OnInit, Input, OnChanges, SimpleChanges  } from '@angular/core';
 import { CallAPIService } from '../call-api.service';
 import { Policy } from '../dataObj/Policy';
-import { FormGroup, FormBuilder} from '@angular/forms';
+import { FormGroup, FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ModifyPolicy } from '../dataObj/ModifyPolicy';
 import { OrgData } from '../dataObj/OrgData';
 import { InheritPolicy } from '../dataObj/InheritPolicy';
 import {ProgressBarMode} from '@angular/material/progress-bar';
 import { LoadingPopupComponent } from '../loading-popup/loading-popup.component';
 import {MatDialog, MatDialogConfig} from '@angular/material/dialog';
+import { PolicySchemaComponent } from '../policy-schema/policy-schema.component';
+import { NgFor, NgIf } from '@angular/common';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-policy-list',
-  templateUrl: './policy-list.component.html',
-  styleUrls: ['./policy-list.component.css']
+    selector: 'app-policy-list',
+    templateUrl: './policy-list.component.html',
+    styleUrls: ['./policy-list.component.css'],
+    standalone: true,
+    imports: [ReactiveFormsModule, MatButtonModule, NgFor, NgIf, PolicySchemaComponent]
 })
 export class PolicyListComponent implements OnInit,OnChanges{
   @Input() policies!: Policy[];

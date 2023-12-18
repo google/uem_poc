@@ -25,8 +25,8 @@ describe('PopupComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ PopupComponent ]
-    })
+    imports: [PopupComponent]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(PopupComponent);

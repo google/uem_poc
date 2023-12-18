@@ -23,9 +23,11 @@ import { Inject } from '@angular/core';
 
 
 @Component({
-  selector: 'app-loading-popup',
-  templateUrl: './loading-popup.component.html',
-  styleUrls: ['./loading-popup.component.css']
+    selector: 'app-loading-popup',
+    templateUrl: './loading-popup.component.html',
+    styleUrls: ['./loading-popup.component.css'],
+    standalone: true,
+    imports: [MatProgressSpinnerModule]
 })
 export class LoadingPopupComponent {
   color: ThemePalette = 'primary';

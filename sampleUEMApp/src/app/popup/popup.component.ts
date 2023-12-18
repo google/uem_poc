@@ -16,13 +16,20 @@ limitations under the License.
 
 **********************************/
 import { Inject, Component, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { OrgData } from '../dataObj/OrgData';
+import { MatButtonModule } from '@angular/material/button';
+import { MatOptionModule } from '@angular/material/core';
+import { NgFor } from '@angular/common';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
-  selector: 'app-popup',
-  templateUrl: './popup.component.html',
-  styleUrls: ['./popup.component.css']
+    selector: 'app-popup',
+    templateUrl: './popup.component.html',
+    styleUrls: ['./popup.component.css'],
+    standalone: true,
+    imports: [MatDialogModule, MatFormFieldModule, MatSelectModule, NgFor, MatOptionModule, MatButtonModule]
 })
 export class PopupComponent implements OnInit{
   ouList: Array<OrgData> = [];

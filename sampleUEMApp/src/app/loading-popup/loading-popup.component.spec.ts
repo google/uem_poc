@@ -25,8 +25,8 @@ describe('LoadingPopupComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ LoadingPopupComponent ]
-    })
+    imports: [LoadingPopupComponent]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(LoadingPopupComponent);

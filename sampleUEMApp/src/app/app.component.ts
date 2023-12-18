@@ -21,13 +21,21 @@ import { Policy } from './dataObj/Policy';
 import {MatDialog} from '@angular/material/dialog';
 import { PopupComponent } from './popup/popup.component';
 import { OrgData } from './dataObj/OrgData';
+import { RouterOutlet } from '@angular/router';
+import { PolicyListComponent } from './policy-list/policy-list.component';
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatToolbarModule } from '@angular/material/toolbar';
 //import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css'],
-  providers:  [CallAPIService]
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.css'],
+    providers: [CallAPIService],
+    standalone: true,
+    imports: [MatToolbarModule, MatFormFieldModule, MatInputModule, MatButtonModule, PolicyListComponent, RouterOutlet]
 })
 export class AppComponent implements OnInit{
   title = 'sampleUEMApp';

@@ -25,8 +25,8 @@ describe('PolicyListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ PolicyListComponent ]
-    })
+    imports: [PolicyListComponent]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(PolicyListComponent);
