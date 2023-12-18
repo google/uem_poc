@@ -31,7 +31,7 @@ export class PolicyControlService {
 
   toFormGroup(policy: Policy) {
     
-    let group: FormGroup = this.fb.group({});
+    const group: FormGroup = this.fb.group({});
 
     policy.fieldDescriptions.forEach(field => {
         group.addControl(policy.schemaName+"."+field.fName, field.fIsReqd ? new FormControl(field.fValue, Validators.required)

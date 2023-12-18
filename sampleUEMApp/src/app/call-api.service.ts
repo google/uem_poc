@@ -21,7 +21,7 @@ import { Policy } from './dataObj/Policy';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { OrgData } from './dataObj/OrgData';
 import { map, of, catchError, expand, EMPTY } from 'rxjs';
-import { filter } from 'rxjs/operators';
+//import { filter } from 'rxjs/operators';
 import { ModifyPolicy } from './dataObj/ModifyPolicy';
 import { InheritPolicy } from './dataObj/InheritPolicy';
 
@@ -68,11 +68,11 @@ export class CallAPIService {
 
   }
   getPolicyCategories() {
-    var  categories: String[] = [];
+    const  categories: string[] = [];
     
-    for(let key of filterCategory.keys()){
+    for(const key of filterCategory.keys()){
       categories.push(key)
-    };
+    }
 
     return categories;
   }
@@ -86,7 +86,7 @@ export class CallAPIService {
   }
   
 
-  private getPolicySchemaAPI(policyNS: string, token:string = "") {
+  private getPolicySchemaAPI(policyNS: string, token = "") {
     if (token === ""){
       return this.httpClient.get(`${this.policyURL}/v1/customers/my_customer/policySchemas?pageSize=500&filter=namespace=${policyNS}`, { headers: this.authHeader() }).pipe(
         map((result) => {
@@ -160,17 +160,17 @@ export class CallAPIService {
   // }
 
   getPolicies(schemaNS: string) {
-    let policyList: Policy[] = [];
+    const policyList: Policy[] = [];
     
     if (this.isloggedIn()){
-      var schemaResponse$ = this.getPolicySchemaAPI(schemaNS).pipe(
+      const schemaResponse$ = this.getPolicySchemaAPI(schemaNS).pipe(
         expand (response => response.result["nextPageToken"] ? this.getPolicySchemaAPI(response.result["nextPageToken"]) : EMPTY),
       );
 
       schemaResponse$.subscribe(list => {
         // Extract Policy fields from policy schema for display
         if (list.state === "success"){
-          for (var policy of list.result["policySchemas"])
+          for (const policy of list.result["policySchemas"])
           {
             //console.log(policy)
             const policySchema: Policy = new Policy();
@@ -179,18 +179,18 @@ export class CallAPIService {
             policySchema.policyDescription = policy.policyDescription;
             policySchema.policyAPILifeCycleStage = policy.policyApiLifecycle.policyApiLifecycleStage;
             if (policy.additionalTargetKeyNames){
-              let targetList = []
-              for (var target of policy.additionalTargetKeyNames){
+              const targetList = []
+              for (const target of policy.additionalTargetKeyNames){
                 targetList.push({ name: target.key, values: []})
               }
               policySchema.targetKey = targetList;
             }
             
-            for (var field of policy.fieldDescriptions)
+            for (const field of policy.fieldDescriptions)
             {
               //console.log(field)
               //console.log(field.knownValueDescriptions)
-              var f_obj = {
+              const f_obj = {
                 fName: field.field,
                 fValue: field.defaultValue,
                 fDescription: field.description,
@@ -213,12 +213,12 @@ export class CallAPIService {
   }
 
   private getFieldType(fList: any, name: any){
-    let fieldObj = fList.find(i => i.name === name);
+    const fieldObj = fList.find(i => i.name === name);
     return fieldObj.type;
   }
 
   private getIsReqd(fList: any, name: any){
-    let fieldObj = fList.find(i => i.name === name);
+    const fieldObj = fList.find(i => i.name === name);
     if (fieldObj.label === "LABEL_OPTIONAL")
     {
       return false;
@@ -227,10 +227,10 @@ export class CallAPIService {
     }
   }
 
-  getResolvedPolicies (ouid: String, filter: String){
+  getResolvedPolicies (ouid: string, filter: string){
     //let resPolicies: Policy[] = [];
     
-    var resolveResponse$ = this.getResolveAPI(ouid, filter).pipe(
+    const resolveResponse$ = this.getResolveAPI(ouid, filter).pipe(
       expand ((response: any) => {
         if (response.state === "success" && response.result["nextPageToken"])
         {
@@ -243,11 +243,11 @@ export class CallAPIService {
     return resolveResponse$;
   }
 
-  private getResolveAPI(ouid:String, filter: String, token: String = "") {
-    let orgid = ouid.split(":").pop();
+  private getResolveAPI(ouid:string, filter: string, token = "") {
+    const orgid = ouid.split(":").pop();
 
     if (token === ""){
-      let body={
+      const body={
           "policyTargetKey": {"targetResource": 'orgunits/'+orgid},
           "policySchemaFilter": filter+'.*'
         }
@@ -266,7 +266,7 @@ export class CallAPIService {
         ),
       );
     } else {
-      let body={
+      const body={
         "policyTargetKey": {"targetResource": 'orgunits/'+orgid},
         "PageToken": token,
         "policySchemaFilter": filter+'.*'
@@ -290,7 +290,7 @@ export class CallAPIService {
 
   makeBatchModifyCall(modifyPolicyList: ModifyPolicy[]) {
 
-      let body={
+      const body={
           "requests": modifyPolicyList
         }
       return this.httpClient.post(`${this.policyURL}/v1/customers/my_customer/policies/orgunits:batchModify`,body,{ headers: this.authHeader() }).pipe(
@@ -311,7 +311,7 @@ export class CallAPIService {
 
   makeBatchInheritCall(inheritPolicyList: InheritPolicy[]) {
 
-    let body={
+    const body={
         "requests": inheritPolicyList
       }
     return this.httpClient.post(`${this.policyURL}/v1/customers/my_customer/policies/orgunits:batchInherit`,body,{ headers: this.authHeader() }).pipe(
@@ -330,10 +330,10 @@ export class CallAPIService {
     );
 }
 
-  getOUName(orgList: Array<OrgData>, ouid: String){
+  getOUName(orgList: Array<OrgData>, ouid: string){
     //console.log(orgList)
     //console.log(ouid)
-    let ouName: String = "/";
+    let ouName = "/";
     for(let i=0; i<orgList.length; i++){
       if(orgList[i].ouid.split(":").pop() === ouid){
         ouName = orgList[i].path;

@@ -42,7 +42,7 @@ import { MatCardModule } from '@angular/material/card';
 export class PolicySchemaComponent implements OnInit{
 
   @Input() policyObj!: Policy;
-  @Input() selectedOUID: String;
+  @Input() selectedOUID: string;
   @Input() orgList: Array<OrgData>;
   @Output() policyFormEvent = new EventEmitter<FormGroup>();
   @Output() inheritPolicyEvent = new EventEmitter<Policy>();
@@ -82,9 +82,9 @@ export class PolicySchemaComponent implements OnInit{
     }
   }
 
-  getOUName(ouID: String){
+  getOUName(ouID: string){
     //console.log(ouID);
-    let OUName = this.service.getOUName(this.orgList, ouID);
+    const OUName = this.service.getOUName(this.orgList, ouID);
     
     if(ouID === "default"){
       return ouID;

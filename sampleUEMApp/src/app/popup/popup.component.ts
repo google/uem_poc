@@ -33,11 +33,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 })
 export class PopupComponent implements OnInit{
   ouList: Array<OrgData> = [];
-  catList: Array<String> = [];
-  selectedOU: String = "/";
-  selectedPolicySchema: String = "Printers";
+  catList: Array<string> = [];
+  selectedOU = "/";
+  selectedPolicySchema = "Printers";
   constructor(public dialogRef: MatDialogRef<PopupComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: {ouList: Array<OrgData>, schemaList: String[], selectedOU: String, selectedSchema: String},) {
+    @Inject(MAT_DIALOG_DATA) public data: {ouList: Array<OrgData>, schemaList: string[], selectedOU: string, selectedSchema: string},) {
     
   }
 

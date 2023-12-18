@@ -38,9 +38,9 @@ import { MatButtonModule } from '@angular/material/button';
 })
 export class PolicyListComponent implements OnInit,OnChanges{
   @Input() policies!: Policy[];
-  @Input() orgId!: String;
+  @Input() orgId!: string;
   @Input() ouList!: Array<OrgData>;
-  @Input() policySchemaNS!: String;
+  @Input() policySchemaNS!: string;
   policiesToInherit: InheritPolicy[] = [];
   policySchemaForm = this.fb.group({});
   //@ViewChild(PolicySchemaComponent) policySchemaCmp:PolicySchemaComponent;
@@ -79,12 +79,12 @@ export class PolicyListComponent implements OnInit,OnChanges{
     mdConfig.height = " 200px";
     mdConfig.data = {};
     const dialogRef = this.dialog.open(LoadingPopupComponent,mdConfig)
-    let updatePolicyObjList: ModifyPolicy[] = [];
+    const updatePolicyObjList: ModifyPolicy[] = [];
     if(this.policySchemaForm.dirty){
       Object.keys(this.policySchemaForm.controls).forEach(key => {
         if(this.policySchemaForm.controls[key].dirty){
-          let updatePolicyObj: ModifyPolicy = new ModifyPolicy();
-          let policySchemaUpdatedValues = this.getModifyPolicySchemaValue(key);
+          const updatePolicyObj: ModifyPolicy = new ModifyPolicy();
+          const policySchemaUpdatedValues = this.getModifyPolicySchemaValue(key);
 
           updatePolicyObj.policyValue = {
             policySchema: key,
@@ -102,7 +102,7 @@ export class PolicyListComponent implements OnInit,OnChanges{
       
       if(updatePolicyObjList.length > 0){
         console.log(updatePolicyObjList)
-        let modifyAPIResponse = this.service.makeBatchModifyCall(updatePolicyObjList);
+        const modifyAPIResponse = this.service.makeBatchModifyCall(updatePolicyObjList);
         modifyAPIResponse.subscribe(item => {
           // console.log(item)
           if (item.state === "success"){
@@ -130,7 +130,7 @@ export class PolicyListComponent implements OnInit,OnChanges{
         // Remove items in the modify list if they are in the inherit list
         this.policiesToInherit.forEach(item => {
           console.log(item);
-          let index = updatePolicyObjList.findIndex(policyObj => policyObj.policyValue.policySchema === item.policySchema);
+          const index = updatePolicyObjList.findIndex(policyObj => policyObj.policyValue.policySchema === item.policySchema);
           console.log(index);
           if(index != -1){
             updatePolicyObjList.splice(index,1);
@@ -138,7 +138,7 @@ export class PolicyListComponent implements OnInit,OnChanges{
         });
       }
 
-      let inheritAPIResponse = this.service.makeBatchInheritCall(this.policiesToInherit);
+      const inheritAPIResponse = this.service.makeBatchInheritCall(this.policiesToInherit);
       inheritAPIResponse.subscribe(item => {
         if (item.state === "success"){
           this.policiesToInherit = [];
@@ -164,7 +164,7 @@ export class PolicyListComponent implements OnInit,OnChanges{
 
   inheritPolicy(policy: Policy){
     //console.log(policy);
-    let policyInheritObj = new InheritPolicy();
+    const policyInheritObj = new InheritPolicy();
     policyInheritObj.policySchema = policy.schemaName;
     policyInheritObj.policyTargetKey = {"targetResource": 'orgunits/'+this.orgId.split(":").pop()};
     this.policiesToInherit.push(policyInheritObj);
@@ -177,7 +177,7 @@ export class PolicyListComponent implements OnInit,OnChanges{
   }
 
   private getModifyPolicySchemaValue(key: string){
-    let modifiedVals = {};
+    const modifiedVals = {};
 
     Object.keys(this.policySchemaForm.controls[key].value).forEach(updatedFieldVal => {
       if(this.policySchemaForm.controls[key].value[updatedFieldVal]){

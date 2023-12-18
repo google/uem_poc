@@ -41,9 +41,9 @@ export class AppComponent implements OnInit{
   title = 'sampleUEMApp';
   policiesObj: Policy[];
   //resolvedPoliciesObj: Policy[];
-  selectedOU: String = "/";
-  selectedPolicySchema: string = 'User Application settings';
-  selectedPolicyNS: string = "chrome.users.appsconfig";
+  selectedOU = "/";
+  selectedPolicySchema = 'User Application settings';
+  selectedPolicyNS = "chrome.users.appsconfig";
   orgList: Array<OrgData> = [];
   constructor(private dialog: MatDialog, private service: CallAPIService) {
     
@@ -51,7 +51,7 @@ export class AppComponent implements OnInit{
 
   ngOnInit(): void {
     this.policiesObj = this.service.getPolicies(this.selectedPolicyNS);
-    let orgResponse$ = this.service.getOrgListAPI();
+    const orgResponse$ = this.service.getOrgListAPI();
 
     orgResponse$.subscribe(orgs => {
         if (orgs.state === "success"){
@@ -64,9 +64,9 @@ export class AppComponent implements OnInit{
                 });
               });
               //this.orgList.push(this.service.getRootOrg(this.orgList));
-          };
+          }
         }
-        let resolveInitCall$ = this.service.getResolvedPolicies(this.getOUID(this.selectedOU), this.service.getPolicyNameSpace(this.selectedPolicySchema.toString()));
+        const resolveInitCall$ = this.service.getResolvedPolicies(this.getOUID(this.selectedOU), this.service.getPolicyNameSpace(this.selectedPolicySchema.toString()));
         this.resolvePolicy(resolveInitCall$);
       }
     );
@@ -74,7 +74,7 @@ export class AppComponent implements OnInit{
 
 
   openDialog() {
-    var categories = this.service.getPolicyCategories();
+    const categories = this.service.getPolicyCategories();
     console.log(this.orgList)
     const dialogRef = this.dialog.open(PopupComponent, {
       data: {ouList: this.orgList, schemaList: categories, selectedOU: this.getOUID(this.selectedOU), selectedSchema: this.selectedPolicySchema},
@@ -85,7 +85,7 @@ export class AppComponent implements OnInit{
       if (result) {
         
         if(result.selectedOU != this.getOUID(this.selectedOU) || result.selectedPolicySchema != this.selectedPolicySchema){
-          let resolveCall$ = this.service.getResolvedPolicies(result.selectedOU, this.service.getPolicyNameSpace(result.selectedPolicySchema.toString()))
+          const resolveCall$ = this.service.getResolvedPolicies(result.selectedOU, this.service.getPolicyNameSpace(result.selectedPolicySchema.toString()))
           this.resolvePolicy(resolveCall$);
         }
         this.selectedOU =  this.service.getOUName(this.orgList, result.selectedOU.split(":").pop());
@@ -103,12 +103,12 @@ export class AppComponent implements OnInit{
         if (item.state === "success" && item.result.resolvedPolicies){
           for (var policy of item.result.resolvedPolicies)
           {
-            var index = this.policiesObj.findIndex(item => item.schemaName === policy.value.policySchema);
+            const index = this.policiesObj.findIndex(item => item.schemaName === policy.value.policySchema);
             
             //console.log(index);
             this.policiesObj[index].inheritedOU = policy.sourceKey['targetResource'].split('/').pop();
             //console.log(this.policiesObj[index])
-            for (var field of Object.keys(policy.value.value)){
+            for (const field of Object.keys(policy.value.value)){
               for(let i=0; i<this.policiesObj[index].fieldDescriptions.length; i++){
                 // if(this.policiesObj[index]){
                 //   this.policiesObj
@@ -123,9 +123,9 @@ export class AppComponent implements OnInit{
       });
   }
 
-  getOUID(ouname: String){
-    var ouid: String = "";
-    for (let org of this.orgList){
+  getOUID(ouname: string){
+    let ouid = "";
+    for (const org of this.orgList){
       //console.log(org.ouid)
       if (org.path === ouname){
         ouid = org.ouid;
