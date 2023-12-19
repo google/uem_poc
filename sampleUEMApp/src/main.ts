@@ -39,7 +39,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { AppRoutingModule } from './app/app-routing.module';
 import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter, Routes } from '@angular/router';
-import { CallAPIService } from './app/call-api.service';
+//import { CallAPIService } from './app/call-api.service';
 
 const routes : Routes = [
   //{path: '', component: AppComponent}
@@ -51,7 +51,6 @@ const routes : Routes = [
 bootstrapApplication(AppComponent, {
     providers: [
         importProvidersFrom(BrowserModule, AppRoutingModule, MatButtonModule, MatInputModule, MatSelectModule, MatChipsModule, MatTabsModule, MatInputModule, MatIconModule, MatDialogModule, MatCardModule, MatBadgeModule, MatToolbarModule, MatRadioModule, ReactiveFormsModule, MatProgressSpinnerModule, OAuthModule.forRoot()),
-        CallAPIService,
         provideRouter(routes),
         provideHttpClient(withInterceptorsFromDi()),
         provideAnimations()

@@ -19,7 +19,7 @@ import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { Policy } from '../dataObj/Policy';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 // import {MatBadgeModule} from '@angular/material/badge';
-import {MatChipInputEvent, MatChipsModule} from '@angular/material/chips';
+//import {MatChipInputEvent, MatChipsModule} from '@angular/material/chips';
 import { PolicyControlService } from '../policy-control.service';
 import { CallAPIService } from '../call-api.service';
 import { OrgData } from '../dataObj/OrgData';

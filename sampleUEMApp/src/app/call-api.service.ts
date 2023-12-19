@@ -51,6 +51,7 @@ export class CallAPIService {
   adminsdkURL = 'https://admin.googleapis.com';
 
   constructor(private readonly oAuthService: OAuthService, private readonly httpClient: HttpClient) {
+    console.log('hello world')
     oAuthService.configure(oAuthConfig)
     oAuthService.logoutUrl = 'https://www.google.com/accounts/logout'
     oAuthService.loadDiscoveryDocument().then( ()=> {
@@ -266,11 +267,11 @@ export class CallAPIService {
         ),
       );
     } else {
-      const body={
-        "policyTargetKey": {"targetResource": 'orgunits/'+orgid},
-        "PageToken": token,
-        "policySchemaFilter": filter+'.*'
-      }
+      // const body={
+      //   "policyTargetKey": {"targetResource": 'orgunits/'+orgid},
+      //   "PageToken": token,
+      //   "policySchemaFilter": filter+'.*'
+      // }
         return this.httpClient.get(`${this.policyURL}/v1/customers/my_customer/policySchemas?pageSize=500&pageToken=${token}`, { headers: this.authHeader()}).pipe(
           map((result) => {
             return {

@@ -15,14 +15,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 **********************************/
-import { Component, OnInit, Input, OnChanges, SimpleChanges  } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges  } from '@angular/core';
 import { CallAPIService } from '../call-api.service';
 import { Policy } from '../dataObj/Policy';
 import { FormGroup, FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ModifyPolicy } from '../dataObj/ModifyPolicy';
 import { OrgData } from '../dataObj/OrgData';
 import { InheritPolicy } from '../dataObj/InheritPolicy';
-import {ProgressBarMode} from '@angular/material/progress-bar';
+//import {ProgressBarMode} from '@angular/material/progress-bar';
 import { LoadingPopupComponent } from '../loading-popup/loading-popup.component';
 import {MatDialog, MatDialogConfig} from '@angular/material/dialog';
 import { PolicySchemaComponent } from '../policy-schema/policy-schema.component';
@@ -36,7 +36,7 @@ import { MatButtonModule } from '@angular/material/button';
     standalone: true,
     imports: [ReactiveFormsModule, MatButtonModule, NgFor, NgIf, PolicySchemaComponent]
 })
-export class PolicyListComponent implements OnInit,OnChanges{
+export class PolicyListComponent implements OnChanges{
   @Input() policies!: Policy[];
   @Input() orgId!: string;
   @Input() ouList!: Array<OrgData>;
@@ -53,14 +53,14 @@ export class PolicyListComponent implements OnInit,OnChanges{
   //   return this.policySchemaForm.get('schemaArr') as FormArray;
   // }
 
-  ngOnInit(): void {
+  //ngOnInit(): void {
 
     // this.policySchemaForm.valueChanges.subscribe(selectedValue => {
     //    console.log('form value changed')
     //    console.log(selectedValue)
     //  })
     
-  }
+  //}
   
   ngOnChanges(changes: SimpleChanges): void {
     //console.log(changes)

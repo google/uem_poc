@@ -33,7 +33,6 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css'],
-    providers: [CallAPIService],
     standalone: true,
     imports: [MatToolbarModule, MatFormFieldModule, MatInputModule, MatButtonModule, PolicyListComponent, RouterOutlet]
 })
@@ -101,7 +100,7 @@ export class AppComponent implements OnInit{
       //resPolicies = item.get("resolvedPolicies");
         console.log(item)
         if (item.state === "success" && item.result.resolvedPolicies){
-          for (var policy of item.result.resolvedPolicies)
+          for (const policy of item.result.resolvedPolicies)
           {
             const index = this.policiesObj.findIndex(item => item.schemaName === policy.value.policySchema);
             
