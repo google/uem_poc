@@ -46,6 +46,7 @@ export class PolicyListComponent implements OnChanges{
   //@ViewChild(PolicySchemaComponent) policySchemaCmp:PolicySchemaComponent;
   
   constructor(private service: CallAPIService, private fb: FormBuilder, private dialog: MatDialog) {
+    console.log("Initiazed Policy List Component")
     
   }
 

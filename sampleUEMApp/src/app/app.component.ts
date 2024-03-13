@@ -16,6 +16,7 @@ limitations under the License.
 
 **********************************/
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { CallAPIService } from './call-api.service';
 import { Policy } from './dataObj/Policy';
 import {MatDialog} from '@angular/material/dialog';
@@ -34,7 +35,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css'],
     standalone: true,
-    imports: [MatToolbarModule, MatFormFieldModule, MatInputModule, MatButtonModule, PolicyListComponent, RouterOutlet]
+    imports: [CommonModule, MatToolbarModule, MatFormFieldModule, MatInputModule, MatButtonModule, PolicyListComponent, RouterOutlet]
 })
 export class AppComponent implements OnInit{
   title = 'sampleUEMApp';
@@ -45,7 +46,7 @@ export class AppComponent implements OnInit{
   selectedPolicyNS = "chrome.users.appsconfig";
   orgList: Array<OrgData> = [];
   constructor(private dialog: MatDialog, private service: CallAPIService) {
-    
+    console.log("Initialized App component")    
   }
 
   ngOnInit(): void {
@@ -71,7 +72,10 @@ export class AppComponent implements OnInit{
     );
   }
 
-
+  login(){
+    this.service.login()
+  }
+  
   openDialog() {
     const categories = this.service.getPolicyCategories();
     console.log(this.orgList)

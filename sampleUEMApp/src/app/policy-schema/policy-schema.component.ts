@@ -48,7 +48,9 @@ export class PolicySchemaComponent implements OnInit{
   @Output() inheritPolicyEvent = new EventEmitter<Policy>();
   form: FormGroup;
 
-  constructor(private service: CallAPIService, private pcs: PolicyControlService){}
+  constructor(private service: CallAPIService, private pcs: PolicyControlService){
+    console.log("Initialized Policy schema component")
+  }
 
   ngOnInit() {
     this.form = this.pcs.toFormGroup(this.policyObj);

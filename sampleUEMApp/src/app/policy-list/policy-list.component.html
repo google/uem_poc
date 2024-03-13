@@ -15,16 +15,22 @@ limitations under the License.
 
 -->
 <form [formGroup]="policySchemaForm" (ngSubmit)="onSubmit()">
-  <div class="button-row">
-    <div class="flex-container">
-      <div class="button-container">
-        <button mat-raised-button color="primary" (click)="updatePolicy()">Save</button>
+  <ng-template [ngIf]="this.policies.length > 0" [ngIfElse]="elseTemplate">
+    <div class="button-row">
+      <div class="flex-container">
+        <div class="button-container">
+          <button mat-raised-button color="primary" (click)="updatePolicy()">Save</button>
+        </div>
       </div>
     </div>
-  </div>
-  <div *ngFor="let policy of policies" class="form-row">
-    <div *ngIf="policy.policyAPILifeCycleStage === 'API_CURRENT'">
-      <app-policy-schema [policyObj]="policy" [selectedOUID]="orgId" [orgList]="ouList" (inheritPolicyEvent)="inheritPolicy($event)" (policyFormEvent)="addGroup(policy.schemaName, $event)"></app-policy-schema>
+    <div *ngFor="let policy of policies" class="form-row">
+      <div *ngIf="policy.policyAPILifeCycleStage === 'API_CURRENT'">
+        <app-policy-schema [policyObj]="policy" [selectedOUID]="orgId" [orgList]="ouList" (inheritPolicyEvent)="inheritPolicy($event)" (policyFormEvent)="addGroup(policy.schemaName, $event)"></app-policy-schema>
+      </div>
     </div>
-  </div>
+  </ng-template>
+  <ng-template #elseTemplate>
+    <h2>Page Not Found</h2>
+    <p>We couldn't find that page! Not even with x-ray vision.</p>
+  </ng-template>
 </form>

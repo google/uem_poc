@@ -17,6 +17,9 @@ limitations under the License.
 <mat-toolbar color="primary">
   <h1> Sample UEM </h1>
   <span class="button-spacer"></span>
+  
+  <button mat-raised-button style="margin-right:5px" color="accent" (click)="openDialog()">Edit</button>
+
   <mat-form-field class="label-width">
     <mat-label>Selected OU</mat-label>
     <input matInput disabled [value]="selectedOU">
@@ -25,7 +28,8 @@ limitations under the License.
     <mat-label>Selected Category</mat-label>
     <input matInput disabled [value]="selectedPolicySchema">
   </mat-form-field>
-  <button mat-raised-button (click)="openDialog()">Edit</button>
+  
+  <button mat-raised-button color="warn" *ngIf="this.orgList.length < 1" (click)="this.login()"> Login </button>
 </mat-toolbar>
 
 <app-policy-list [policySchemaNS] = "selectedPolicyNS" [policies]="policiesObj" [orgId]="getOUID(selectedOU)" [ouList]="orgList"></app-policy-list>
