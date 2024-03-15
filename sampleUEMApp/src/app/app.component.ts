@@ -17,7 +17,7 @@ limitations under the License.
 **********************************/
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CallAPIService } from './call-api.service';
+import { CallAPIService } from './services/call-api.service';
 import { Policy } from './dataObj/Policy';
 import {MatDialog} from '@angular/material/dialog';
 import { PopupComponent } from './popup/popup.component';
@@ -28,30 +28,49 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatToolbarModule } from '@angular/material/toolbar';
-//import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+
 
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css'],
     standalone: true,
-    imports: [CommonModule, MatToolbarModule, MatFormFieldModule, MatInputModule, MatButtonModule, PolicyListComponent, RouterOutlet]
+    imports: [CommonModule, MatToolbarModule, MatFormFieldModule, MatInputModule, MatButtonModule, PolicyListComponent, RouterOutlet],
+    providers:  [ CallAPIService ]
+
 })
 export class AppComponent implements OnInit{
   title = 'sampleUEMApp';
   policiesObj: Policy[];
+  oAuthCreds: any;
   //resolvedPoliciesObj: Policy[];
   selectedOU = "/";
   selectedPolicySchema = 'User Application settings';
   selectedPolicyNS = "chrome.users.appsconfig";
   orgList: Array<OrgData> = [];
-  constructor(private dialog: MatDialog, private service: CallAPIService) {
+  constructor(private service: CallAPIService,private dialog: MatDialog) {
     console.log("Initialized App component")    
   }
 
   ngOnInit(): void {
-    this.policiesObj = this.service.getPolicies(this.selectedPolicyNS);
-    const orgResponse$ = this.service.getOrgListAPI();
+    // @ts-ignore
+    google.accounts.id.initialize({
+      client_id: "258558342955-ngb40ej1pj8b1vi4j24t35870s9bbi9a.apps.googleusercontent.com",
+      callback: this.handleCredentialResponse.bind(this),
+      auto_select: false,
+      cancel_on_tap_outside: true,
+
+    });
+    // @ts-ignore
+    google.accounts.id.renderButton(
+    // @ts-ignore
+    document.getElementById("google-button"),
+      { theme: "outline", size: "large", width: "100%" }
+    );
+    // @ts-ignore
+    google.accounts.id.prompt((notification: PromptMomentNotification) => {});  
+    this.policiesObj = this.service.getPolicies(this.selectedPolicyNS, this.oAuthCreds['credential']);
+    const orgResponse$ = this.service.getOrgListAPI(this.oAuthCreds['credential']);
 
     orgResponse$.subscribe(orgs => {
         if (orgs.state === "success"){
@@ -66,15 +85,20 @@ export class AppComponent implements OnInit{
               //this.orgList.push(this.service.getRootOrg(this.orgList));
           }
         }
-        const resolveInitCall$ = this.service.getResolvedPolicies(this.getOUID(this.selectedOU), this.service.getPolicyNameSpace(this.selectedPolicySchema.toString()));
+        const resolveInitCall$ = this.service.getResolvedPolicies(this.getOUID(this.selectedOU), this.service.getPolicyNameSpace(this.selectedPolicySchema.toString()),this.oAuthCreds);
         this.resolvePolicy(resolveInitCall$);
       }
     );
   }
-
-  login(){
-    this.service.login()
+  
+  async handleCredentialResponse(response: any) {
+    // Here will be your response from Google.
+    this.oAuthCreds = response;
   }
+
+  // login(){
+  //   this.service.login()
+  // }
   
   openDialog() {
     const categories = this.service.getPolicyCategories();
@@ -88,13 +112,13 @@ export class AppComponent implements OnInit{
       if (result) {
         
         if(result.selectedOU != this.getOUID(this.selectedOU) || result.selectedPolicySchema != this.selectedPolicySchema){
-          const resolveCall$ = this.service.getResolvedPolicies(result.selectedOU, this.service.getPolicyNameSpace(result.selectedPolicySchema.toString()))
+          const resolveCall$ = this.service.getResolvedPolicies(result.selectedOU, this.service.getPolicyNameSpace(result.selectedPolicySchema.toString()),this.oAuthCreds)
           this.resolvePolicy(resolveCall$);
         }
         this.selectedOU =  this.service.getOUName(this.orgList, result.selectedOU.split(":").pop());
         this.selectedPolicySchema = result.selectedPolicySchema;
         this.selectedPolicyNS = this.service.getPolicyNameSpace(this.selectedPolicySchema.toString());
-        this.policiesObj = this.service.getPolicies(this.selectedPolicyNS);
+        this.policiesObj = this.service.getPolicies(this.selectedPolicyNS, this.oAuthCreds);
       }
     });
   }

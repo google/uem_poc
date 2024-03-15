@@ -29,7 +29,8 @@ limitations under the License.
     <input matInput disabled [value]="selectedPolicySchema">
   </mat-form-field>
   
-  <button mat-raised-button color="warn" *ngIf="this.orgList.length < 1" (click)="this.login()"> Login </button>
+  <!--<button mat-raised-button color="warn" *ngIf="this.orgList.length < 1" (click)="this.login()"> Login </button>-->
+  <div class="" id="google-button"></div>
 </mat-toolbar>
 
 <app-policy-list [policySchemaNS] = "selectedPolicyNS" [policies]="policiesObj" [orgId]="getOUID(selectedOU)" [ouList]="orgList"></app-policy-list>

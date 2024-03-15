@@ -16,7 +16,7 @@ limitations under the License.
 
 **********************************/
 import { Injectable } from '@angular/core';
-import { Policy } from './dataObj/Policy';
+import { Policy } from '../dataObj/Policy';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
 @Injectable({

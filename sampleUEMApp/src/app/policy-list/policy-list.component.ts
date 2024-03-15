@@ -16,7 +16,7 @@ limitations under the License.
 
 **********************************/
 import { Component, Input, OnChanges, SimpleChanges  } from '@angular/core';
-import { CallAPIService } from '../call-api.service';
+import { CallAPIService } from '../services/call-api.service';
 import { Policy } from '../dataObj/Policy';
 import { FormGroup, FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ModifyPolicy } from '../dataObj/ModifyPolicy';

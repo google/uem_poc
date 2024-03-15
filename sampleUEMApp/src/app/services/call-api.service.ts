@@ -17,12 +17,12 @@ limitations under the License.
 **********************************/
 import { Injectable } from '@angular/core';
 import { AuthConfig, OAuthService } from 'angular-oauth2-oidc';
-import { Policy } from './dataObj/Policy';
+import { Policy } from '../dataObj/Policy';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { OrgData } from './dataObj/OrgData';
+import { OrgData } from '../dataObj/OrgData';
 import { map, of, catchError, expand, EMPTY } from 'rxjs';
-import { ModifyPolicy } from './dataObj/ModifyPolicy';
-import { InheritPolicy } from './dataObj/InheritPolicy';
+import { ModifyPolicy } from '../dataObj/ModifyPolicy';
+import { InheritPolicy } from '../dataObj/InheritPolicy';
 
 
 const oAuthConfig: AuthConfig = {
@@ -50,11 +50,12 @@ export class CallAPIService {
   policyURL = 'https://chromepolicy.googleapis.com';
   adminsdkURL = 'https://admin.googleapis.com';
 
-  constructor(private readonly oAuthService: OAuthService, private readonly httpClient: HttpClient) {
+  constructor(private readonly httpClient: HttpClient) {
     console.log('Initialized call api service')
-    oAuthService.configure(oAuthConfig)
-    oAuthService.logoutUrl = 'https://www.google.com/accounts/logout'
-    this.oAuthService.loadDiscoveryDocumentAndLogin();
+    
+    // oAuthService.configure(oAuthConfig)
+    // oAuthService.logoutUrl = 'https://www.google.com/accounts/logout'
+    // this.oAuthService.loadDiscoveryDocumentAndLogin();
     // if(!this.isloggedIn()){
     //   this.login();
     // }
@@ -71,6 +72,7 @@ export class CallAPIService {
       })
     }) */
    }
+  
 
   getPolicyNameSpace(category: string) {
 
@@ -87,22 +89,22 @@ export class CallAPIService {
     return categories;
   }
   
-  login() {
-    this.oAuthService.initLoginFlowInPopup();
-  }
+  // login() {
+  //   this.oAuthService.initLoginFlowInPopup();
+  // }
 
-  isloggedIn(): boolean {
-    return this.oAuthService.hasValidAccessToken()
-  }
+  // isloggedIn(): boolean {
+  //   return this.oAuthService.hasValidAccessToken()
+  // }
 
-  signOut() {
-    this.oAuthService.logOut()
-  }
+  // signOut() {
+  //   this.oAuthService.logOut()
+  // }
   
 
-  private getPolicySchemaAPI(policyNS: string, token = "") {
+  private getPolicySchemaAPI(policyNS: string, token = "", oAuthCreds:string) {
     if (token === ""){
-      return this.httpClient.get(`${this.policyURL}/v1/customers/my_customer/policySchemas?pageSize=500&filter=namespace=${policyNS}`, { headers: this.authHeader() }).pipe(
+      return this.httpClient.get(`${this.policyURL}/v1/customers/my_customer/policySchemas?pageSize=500&filter=namespace=${policyNS}`, { headers: this.authHeader(oAuthCreds) }).pipe(
         map((result) => {
           return {
             state: 'success',
@@ -117,7 +119,7 @@ export class CallAPIService {
         ),
       );
     } else {
-      return this.httpClient.get(`${this.policyURL}/v1/customers/my_customer/policySchemas?pageSize=500&filter=namespace=${policyNS}&pageToken=${token}`, { headers: this.authHeader()}).pipe(
+      return this.httpClient.get(`${this.policyURL}/v1/customers/my_customer/policySchemas?pageSize=500&filter=namespace=${policyNS}&pageToken=${token}`, { headers: this.authHeader(oAuthCreds)}).pipe(
         map((result) => {
           return {
             state: 'success',
@@ -134,8 +136,8 @@ export class CallAPIService {
     }
   }
 
-  getOrgListAPI() {
-    return this.httpClient.get(`${this.adminsdkURL}/admin/directory/v1/customer/my_customer/orgunits?type=ALL_INCLUDING_PARENT`, { headers: this.authHeader() }).pipe(
+  getOrgListAPI(oAuthCreds: string) {
+    return this.httpClient.get(`${this.adminsdkURL}/admin/directory/v1/customer/my_customer/orgunits?type=ALL_INCLUDING_PARENT`, { headers: this.authHeader(oAuthCreds) }).pipe(
       map((result) => {
         return {
           state: 'success',
@@ -151,9 +153,9 @@ export class CallAPIService {
     );
   }
 
-  private authHeader() : HttpHeaders {
+  private authHeader(token: string) : HttpHeaders {
     return new HttpHeaders ({
-      'Authorization': `Bearer ${this.oAuthService.getAccessToken()}`
+      'Authorization': `Bearer ${token}`
     })
   }
 
@@ -173,12 +175,11 @@ export class CallAPIService {
   //   return rootOrg;
   // }
 
-  getPolicies(schemaNS: string) {
+  getPolicies(schemaNS: string, oAuthCreds: string) {
     const policyList: Policy[] = [];
     
-    if (this.isloggedIn()){
-      const schemaResponse$ = this.getPolicySchemaAPI(schemaNS).pipe(
-        expand (response => response.result["nextPageToken"] ? this.getPolicySchemaAPI(response.result["nextPageToken"]) : EMPTY),
+      const schemaResponse$ = this.getPolicySchemaAPI(schemaNS,'',oAuthCreds).pipe(
+        expand (response => response.result["nextPageToken"] ? this.getPolicySchemaAPI(schemaNS, response.result["nextPageToken"], oAuthCreds) : EMPTY),
       );
 
       schemaResponse$.subscribe(list => {
@@ -217,9 +218,7 @@ export class CallAPIService {
         }
       });
 
-    } else {
-      alert("User not logged in")
-    }
+    
 
     return policyList;
   }
@@ -239,14 +238,14 @@ export class CallAPIService {
     }
   }
 
-  getResolvedPolicies (ouid: string, filter: string){
+  getResolvedPolicies (ouid: string, filter: string, oAuthCreds:string){
     //let resPolicies: Policy[] = [];
     
-    const resolveResponse$ = this.getResolveAPI(ouid, filter).pipe(
+    const resolveResponse$ = this.getResolveAPI(ouid, filter,"", oAuthCreds).pipe(
       expand ((response: any) => {
         if (response.state === "success" && response.result["nextPageToken"])
         {
-          return this.getResolveAPI(ouid, filter, response.result["nextPageToken"])
+          return this.getResolveAPI(ouid, filter, response.result["nextPageToken"],oAuthCreds)
         }
         return EMPTY
       })
@@ -255,7 +254,7 @@ export class CallAPIService {
     return resolveResponse$;
   }
 
-  private getResolveAPI(ouid:string, filter: string, token = "") {
+  private getResolveAPI(ouid:string, filter: string, token = "", oAuthCreds:string) {
     const orgid = ouid.split(":").pop();
 
     if (token === ""){
@@ -263,7 +262,7 @@ export class CallAPIService {
           "policyTargetKey": {"targetResource": 'orgunits/'+orgid},
           "policySchemaFilter": filter+'.*'
         }
-      return this.httpClient.post(`${this.policyURL}/v1/customers/my_customer/policies:resolve`,body,{ headers: this.authHeader() }).pipe(
+      return this.httpClient.post(`${this.policyURL}/v1/customers/my_customer/policies:resolve`,body,{ headers: this.authHeader(oAuthCreds) }).pipe(
         map((result) => {
           return {
             state: 'success',
@@ -283,7 +282,7 @@ export class CallAPIService {
       //   "PageToken": token,
       //   "policySchemaFilter": filter+'.*'
       // }
-        return this.httpClient.get(`${this.policyURL}/v1/customers/my_customer/policySchemas?pageSize=500&pageToken=${token}`, { headers: this.authHeader()}).pipe(
+        return this.httpClient.get(`${this.policyURL}/v1/customers/my_customer/policySchemas?pageSize=500&pageToken=${token}`, { headers: this.authHeader(oAuthCreds)}).pipe(
           map((result) => {
             return {
               state: 'success',
@@ -300,12 +299,12 @@ export class CallAPIService {
       }
   }
 
-  makeBatchModifyCall(modifyPolicyList: ModifyPolicy[]) {
+  makeBatchModifyCall(modifyPolicyList: ModifyPolicy[], oAuthCreds:string) {
 
       const body={
           "requests": modifyPolicyList
         }
-      return this.httpClient.post(`${this.policyURL}/v1/customers/my_customer/policies/orgunits:batchModify`,body,{ headers: this.authHeader() }).pipe(
+      return this.httpClient.post(`${this.policyURL}/v1/customers/my_customer/policies/orgunits:batchModify`,body,{ headers: this.authHeader(oAuthCreds) }).pipe(
         map((result) => {
           return {
             state: 'success',
@@ -321,12 +320,12 @@ export class CallAPIService {
       );
   }
 
-  makeBatchInheritCall(inheritPolicyList: InheritPolicy[]) {
+  makeBatchInheritCall(inheritPolicyList: InheritPolicy[], oAuthCreds:string) {
 
     const body={
         "requests": inheritPolicyList
       }
-    return this.httpClient.post(`${this.policyURL}/v1/customers/my_customer/policies/orgunits:batchInherit`,body,{ headers: this.authHeader() }).pipe(
+    return this.httpClient.post(`${this.policyURL}/v1/customers/my_customer/policies/orgunits:batchInherit`,body,{ headers: this.authHeader(oAuthCreds) }).pipe(
       map((result) => {
         return {
           state: 'success',
