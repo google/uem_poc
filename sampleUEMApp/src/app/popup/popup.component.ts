@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 **********************************/
-import { Inject, Component, OnInit } from '@angular/core';
+import { Inject, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { OrgData } from '../dataObj/OrgData';
 import { MatButtonModule } from '@angular/material/button';
@@ -29,6 +29,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
     templateUrl: './popup.component.html',
     styleUrls: ['./popup.component.css'],
     standalone: true,
+    //changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [MatDialogModule, MatFormFieldModule, MatSelectModule, NgFor, MatOptionModule, MatButtonModule]
 })
 export class PopupComponent implements OnInit{

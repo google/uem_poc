@@ -15,14 +15,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 **********************************/
-import { Component, Input, OnChanges, SimpleChanges  } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges  } from '@angular/core';
 import { CallAPIService } from '../services/call-api.service';
 import { Policy } from '../dataObj/Policy';
 import { FormGroup, FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ModifyPolicy } from '../dataObj/ModifyPolicy';
 import { OrgData } from '../dataObj/OrgData';
 import { InheritPolicy } from '../dataObj/InheritPolicy';
-//import {ProgressBarMode} from '@angular/material/progress-bar';
 import { LoadingPopupComponent } from '../loading-popup/loading-popup.component';
 import {MatDialog, MatDialogConfig} from '@angular/material/dialog';
 import { PolicySchemaComponent } from '../policy-schema/policy-schema.component';
@@ -34,45 +33,66 @@ import { MatButtonModule } from '@angular/material/button';
     templateUrl: './policy-list.component.html',
     styleUrls: ['./policy-list.component.css'],
     standalone: true,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [ReactiveFormsModule, MatButtonModule, NgFor, NgIf, PolicySchemaComponent]
 })
 export class PolicyListComponent implements OnChanges{
-  @Input() policies!: Policy[];
-  @Input() orgId!: string;
-  @Input() ouList!: Array<OrgData>;
-  @Input() policySchemaNS!: string;
+  @Input() set policies (policyList: Policy[]){
+    this._policies = policyList;
+  }
+  private _policies: any;
+  @Input() set orgId(oId: string){
+    this._orgId = oId;
+  }
+  private _orgId: string;
+  @Input() set ouList(oList: Array<OrgData>){
+    this._ouList = oList;
+  }
+  private _ouList: Array<OrgData>;
+  @Input() set policySchemaNS(pSchemaNS: string){
+    this._pSchemaNS = pSchemaNS;
+  }
+  private _pSchemaNS: string;
+
   policiesToInherit: InheritPolicy[] = [];
   policySchemaForm = this.fb.group({});
-  //@ViewChild(PolicySchemaComponent) policySchemaCmp:PolicySchemaComponent;
+
+  @Output() submitPolicyUpdateEvent = new EventEmitter();
   
-  constructor(private service: CallAPIService, private fb: FormBuilder, private dialog: MatDialog) {
+  constructor(private service: CallAPIService, private fb: FormBuilder, private dialog: MatDialog, private cdref: ChangeDetectorRef) {
     console.log("Initiazed Policy List Component")
     
   }
 
-  // get schemaArr() {
-  //   return this.policySchemaForm.get('schemaArr') as FormArray;
-  // }
+  get policySchemaNS() {
+    return this._pSchemaNS;
+  }
 
-  //ngOnInit(): void {
 
-    // this.policySchemaForm.valueChanges.subscribe(selectedValue => {
-    //    console.log('form value changed')
-    //    console.log(selectedValue)
-    //  })
-    
-  //}
+  get orgId() {
+    return this._orgId;
+  }
+
+  get policies() {
+    return this._policies;
+  }
+
+  get ouList() {
+    return this._ouList;
+  }
   
+  ngDoCheck(){
+    console.log("Change detection - Policy List Component");
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
-    //console.log(changes)
-    // console.log(this.policies);
     if(changes['orgId'] || changes['policySchemaNS']){
       this.policySchemaForm.controls = {};
     }
+    //this.cdref.markForCheck();
 }
 
   updatePolicy(){
-    // this.showMatProgress = true;
     let progressValue = 0;
     const mdConfig = new MatDialogConfig();
     mdConfig.disableClose = true;
@@ -105,9 +125,11 @@ export class PolicyListComponent implements OnChanges{
         console.log(updatePolicyObjList)
         const modifyAPIResponse = this.service.makeBatchModifyCall(updatePolicyObjList);
         modifyAPIResponse.subscribe(item => {
-          // console.log(item)
           if (item.state === "success"){
+            console.log("Modify changes success");
             alert("Modify Changes submitted");
+            this.submitPolicyUpdateEvent.emit();
+            //this.cdref.markForCheck();
             progressValue += 50;
             this.closeDialog(dialogRef, progressValue);
           } else {
@@ -126,13 +148,13 @@ export class PolicyListComponent implements OnChanges{
     }
 
     if (this.policiesToInherit.length > 0){
-      console.log(this.policiesToInherit)
+      //console.log(this.policiesToInherit)
       if(updatePolicyObjList.length > 0){
         // Remove items in the modify list if they are in the inherit list
         this.policiesToInherit.forEach(item => {
-          console.log(item);
+          //console.log(item);
           const index = updatePolicyObjList.findIndex(policyObj => policyObj.policyValue.policySchema === item.policySchema);
-          console.log(index);
+          //console.log(index);
           if(index != -1){
             updatePolicyObjList.splice(index,1);
           }
@@ -144,6 +166,7 @@ export class PolicyListComponent implements OnChanges{
         if (item.state === "success"){
           this.policiesToInherit = [];
           alert("Inherit Changes submitted");
+          this.submitPolicyUpdateEvent.emit();
           progressValue += 50;
           this.closeDialog(dialogRef, progressValue);
         } else {
@@ -156,6 +179,7 @@ export class PolicyListComponent implements OnChanges{
       progressValue += 50;
       this.closeDialog(dialogRef, progressValue);
     }
+    this.cdref.markForCheck();
 
   }
 
@@ -164,7 +188,6 @@ export class PolicyListComponent implements OnChanges{
   }
 
   inheritPolicy(policy: Policy){
-    //console.log(policy);
     const policyInheritObj = new InheritPolicy();
     policyInheritObj.policySchema = policy.schemaName;
     policyInheritObj.policyTargetKey = {"targetResource": 'orgunits/'+this.orgId.split(":").pop()};

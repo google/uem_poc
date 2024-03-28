@@ -21,14 +21,14 @@ export class Policy{
     inheritedOU: string;
     policyDescription: string;
     policyAPILifeCycleStage: string;
-    targetKey: {name: string, values: string[]}[];
+    targetKey: {name: string, values: string[]}[] | null;
     fieldDescriptions: {fName: string, fDescription: string, fType: string, fValue: any, fIsReqd: boolean, fEnumList: {value:string, description: string}[]}[];
 
     constructor(policyObj: {
         categoryTitle?: string;
         schemaName?: string;
         inheritedOU?: string;
-        targetKey?: {name: string, values: string[]}[];
+        targetKey?: {name: string, values: string[]}[] | null;
         policyDescription?: string;
         policyAPILifeCycleStage?: string;
         fieldDescriptions?: {fName: string, fDescription: string, fType: string, fValue: any, fIsReqd: boolean, fEnumList: {value:string, description: string}[]}[];
@@ -42,4 +42,29 @@ export class Policy{
         this.fieldDescriptions = policyObj.fieldDescriptions || [];
     }
 
+    // cloneObject(): Policy{
+    //     const clonedTargetKey = this.targetKey==null? null: this.targetKey.map(({name, values})=>{
+    //         return {name, values:[...values]}
+    //     });
+    //     const clonedFieldDescriptions = this.fieldDescriptions.map(arg => {
+    //         return {fName: arg.fName, fDescription: arg.fDescription, fType: arg.fType, fValue: arg.fValue, fIsReqd: arg.fIsReqd, fEnumList: arg.fEnumList.map(
+    //             obj => {
+    //                 return {...obj}
+    //             }
+    //         )}
+    //     });
+
+    //     return new Policy({categoryTitle: this.categoryTitle, schemaName: this.schemaName, inheritedOU: this.inheritedOU, targetKey: clonedTargetKey, policyDescription: this.policyDescription, policyAPILifeCycleStage: this.policyAPILifeCycleStage, fieldDescriptions: clonedFieldDescriptions});
+    // }
+
+}
+
+export interface PolicyData {
+    categoryTitle: string;
+    schemaName: string;
+    inheritedOU: string;
+    policyDescription: string;
+    policyAPILifeCycleStage: string;
+    targetKey: {name: string, values: string[]}[] | null;
+    fieldDescriptions: {fName: string, fDescription: string, fType: string, fValue: any, fIsReqd: boolean, fEnumList: {value:string, description: string}[]}[];
 }

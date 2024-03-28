@@ -15,7 +15,7 @@ limitations under the License.
 
 -->
 <form [formGroup]="policySchemaForm" (ngSubmit)="onSubmit()">
-  <ng-template [ngIf]="this.policies.length > 0" [ngIfElse]="elseTemplate">
+  <ng-template [ngIf]="policies" [ngIfElse]="elseTemplate">
     <div class="button-row">
       <div class="flex-container">
         <div class="button-container">

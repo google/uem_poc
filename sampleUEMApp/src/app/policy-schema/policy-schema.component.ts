@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 **********************************/
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { Policy } from '../dataObj/Policy';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 // import {MatBadgeModule} from '@angular/material/badge';
@@ -37,18 +37,25 @@ import { MatCardModule } from '@angular/material/card';
     templateUrl: './policy-schema.component.html',
     styleUrls: ['./policy-schema.component.css'],
     standalone: true,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [ReactiveFormsModule, MatCardModule, MatButtonModule, NgFor, NgSwitch, NgSwitchCase, MatFormFieldModule, NgIf, MatInputModule, MatSelectModule, MatOptionModule, MatRadioModule]
 })
 export class PolicySchemaComponent implements OnInit{
 
-  @Input() policyObj!: Policy;
+  @Input() set policyObj(policyObj: Policy){
+    this._pObj = policyObj;
+  }
+  private _pObj: Policy;
   @Input() selectedOUID: string;
-  @Input() orgList: Array<OrgData>;
+  @Input() set orgList(oList: Array<OrgData>){
+    this._orgList = oList;
+  }
+  private _orgList : Array<OrgData>;
   @Output() policyFormEvent = new EventEmitter<FormGroup>();
   @Output() inheritPolicyEvent = new EventEmitter<Policy>();
   form: FormGroup;
 
-  constructor(private service: CallAPIService, private pcs: PolicyControlService){
+  constructor(private service: CallAPIService, private pcs: PolicyControlService, private cdref: ChangeDetectorRef){
     console.log("Initialized Policy schema component")
   }
 
@@ -58,6 +65,13 @@ export class PolicySchemaComponent implements OnInit{
     //console.log(this.form)
   }
 
+  get orgList(){
+    return this._orgList;
+  }
+
+  get policyObj(){
+    return this._pObj;
+  }
   get isValid() { 
     return this.form.controls[this.policyObj.schemaName].valid; 
   }
@@ -72,9 +86,6 @@ export class PolicySchemaComponent implements OnInit{
   }
 
   isInherited(policyOID: string){
-    //console.log(this.policyObj.schemaName)
-    //console.log(policyOID)
-    //console.log(this.selectedOUID)
     if(policyOID === "default" || this.service.getOUName(this.orgList, this.selectedOUID.split(":").pop()) === '/'){
       return true;
     } else if (policyOID != this.selectedOUID.split(":").pop()){
@@ -85,7 +96,6 @@ export class PolicySchemaComponent implements OnInit{
   }
 
   getOUName(ouID: string){
-    //console.log(ouID);
     const OUName = this.service.getOUName(this.orgList, ouID);
     
     if(ouID === "default"){
@@ -94,7 +104,6 @@ export class PolicySchemaComponent implements OnInit{
       return "root";
     }
 
-    //console.log(OUName)
     return OUName;
     
   }

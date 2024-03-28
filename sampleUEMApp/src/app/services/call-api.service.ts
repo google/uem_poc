@@ -15,24 +15,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 **********************************/
-import { Injectable } from '@angular/core';
-import { AuthConfig, OAuthService } from 'angular-oauth2-oidc';
-import { Policy } from '../dataObj/Policy';
+import { Injectable, OnDestroy, inject } from '@angular/core';
+import { AuthConfig } from 'angular-oauth2-oidc';
+import { Policy, PolicyData } from '../dataObj/Policy';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { OrgData } from '../dataObj/OrgData';
 import { map, of, catchError, expand, EMPTY } from 'rxjs';
 import { ModifyPolicy } from '../dataObj/ModifyPolicy';
 import { InheritPolicy } from '../dataObj/InheritPolicy';
+import { GoogleAuthService } from './google-auth.service';
 
-
-const oAuthConfig: AuthConfig = {
-  issuer: 'https://accounts.google.com',
-  strictDiscoveryDocumentValidation: false,
-  redirectUri: window.location.origin,
-  clientId: '258558342955-ngb40ej1pj8b1vi4j24t35870s9bbi9a.apps.googleusercontent.com',
-  responseType: 'code',
-  scope: 'openid profile email https://www.googleapis.com/auth/chrome.management.policy https://www.googleapis.com/auth/admin.directory.orgunit.readonly'
-}
+// const oAuthConfig: AuthConfig = {
+//   issuer: 'https://accounts.google.com',
+//   strictDiscoveryDocumentValidation: false,
+//   redirectUri: window.location.origin,
+//   clientId: '258558342955-ngb40ej1pj8b1vi4j24t35870s9bbi9a.apps.googleusercontent.com',
+//   responseType: 'code',
+//   scope: 'openid profile email https://www.googleapis.com/auth/chrome.management.policy https://www.googleapis.com/auth/admin.directory.orgunit.readonly'
+// }
 
   const filterCategory = new Map([
     ["Users", "chrome.users"],
@@ -46,33 +46,19 @@ const oAuthConfig: AuthConfig = {
 @Injectable({
   providedIn: 'root'
 })
-export class CallAPIService {
+export class CallAPIService implements OnDestroy{
   policyURL = 'https://chromepolicy.googleapis.com';
   adminsdkURL = 'https://admin.googleapis.com';
+  private oAuthService = inject(GoogleAuthService);
+  private schemaAPISubscription;
 
   constructor(private readonly httpClient: HttpClient) {
     console.log('Initialized call api service')
-    
-    // oAuthService.configure(oAuthConfig)
-    // oAuthService.logoutUrl = 'https://www.google.com/accounts/logout'
-    // this.oAuthService.loadDiscoveryDocumentAndLogin();
-    // if(!this.isloggedIn()){
-    //   this.login();
-    // }
-    
-/*     oAuthService.loadDiscoveryDocument().then( ()=> {
-      oAuthService.tryLoginImplicitFlow().then( ()=> {
-        if(!oAuthService.hasValidAccessToken()){
-          oAuthService.initLoginFlow()
-        } else {
-          oAuthService.loadUserProfile().then( (userProfile) => {
-            console.log(JSON.stringify(userProfile))
-          })
-        }
-      })
-    }) */
    }
   
+  ngOnDestroy(): void {
+    this.schemaAPISubscription.unsubscribe();
+  }
 
   getPolicyNameSpace(category: string) {
 
@@ -88,23 +74,11 @@ export class CallAPIService {
 
     return categories;
   }
-  
-  // login() {
-  //   this.oAuthService.initLoginFlowInPopup();
-  // }
+    
 
-  // isloggedIn(): boolean {
-  //   return this.oAuthService.hasValidAccessToken()
-  // }
-
-  // signOut() {
-  //   this.oAuthService.logOut()
-  // }
-  
-
-  private getPolicySchemaAPI(policyNS: string, token = "", oAuthCreds:string) {
+  private getPolicySchemaAPI(policyNS: string, token = "") {
     if (token === ""){
-      return this.httpClient.get(`${this.policyURL}/v1/customers/my_customer/policySchemas?pageSize=500&filter=namespace=${policyNS}`, { headers: this.authHeader(oAuthCreds) }).pipe(
+      return this.httpClient.get(`${this.policyURL}/v1/customers/my_customer/policySchemas?pageSize=500&filter=namespace=${policyNS}`, { headers: this.authHeader() }).pipe(
         map((result) => {
           return {
             state: 'success',
@@ -119,7 +93,7 @@ export class CallAPIService {
         ),
       );
     } else {
-      return this.httpClient.get(`${this.policyURL}/v1/customers/my_customer/policySchemas?pageSize=500&filter=namespace=${policyNS}&pageToken=${token}`, { headers: this.authHeader(oAuthCreds)}).pipe(
+      return this.httpClient.get(`${this.policyURL}/v1/customers/my_customer/policySchemas?pageSize=500&filter=namespace=${policyNS}&pageToken=${token}`, { headers: this.authHeader()}).pipe(
         map((result) => {
           return {
             state: 'success',
@@ -136,63 +110,49 @@ export class CallAPIService {
     }
   }
 
-  getOrgListAPI(oAuthCreds: string) {
-    return this.httpClient.get(`${this.adminsdkURL}/admin/directory/v1/customer/my_customer/orgunits?type=ALL_INCLUDING_PARENT`, { headers: this.authHeader(oAuthCreds) }).pipe(
-      map((result) => {
-        return {
-          state: 'success',
-          result: result,
-        } as any
-      }),
-      catchError((err) =>
-        of({
-          state: 'error',
-          error: err,
+  getOrgListAPI() {
+      return this.httpClient.get(`${this.adminsdkURL}/admin/directory/v1/customer/my_customer/orgunits?type=ALL_INCLUDING_PARENT`, { headers: this.authHeader() }).pipe(
+        map((result) => {
+          return {
+            state: 'success',
+            result: result,
+          } as any
         }),
-      ),
-    );
+        catchError((err) =>
+          of({
+            state: 'error',
+            error: err,
+          }),
+        ),
+      );
   }
 
-  private authHeader(token: string) : HttpHeaders {
+  private authHeader() : HttpHeaders {
     return new HttpHeaders ({
-      'Authorization': `Bearer ${token}`
+      'Authorization': `Bearer ${this.oAuthService.getToken()}`
     })
   }
 
-  // getRootOrg(orgList: Array<OrgData>){
-  //   let rootOrg: OrgData;
-  //   for(let item of orgList){
-  //     if(item.path.match(/\//g).length === 1){
-  //       rootOrg = {
-  //         "ouid": item.parent,
-  //         "path": "/",
-  //         "parent": "None"
-
-  //       }
-  //       break;
-  //     }
-  //   };
-  //   return rootOrg;
-  // }
-
-  getPolicies(schemaNS: string, oAuthCreds: string) {
-    const policyList: Policy[] = [];
-    
-      const schemaResponse$ = this.getPolicySchemaAPI(schemaNS,'',oAuthCreds).pipe(
-        expand (response => response.result["nextPageToken"] ? this.getPolicySchemaAPI(schemaNS, response.result["nextPageToken"], oAuthCreds) : EMPTY),
-      );
-
-      schemaResponse$.subscribe(list => {
-        // Extract Policy fields from policy schema for display
+  getPolicies$(schemaNS: string) {
+    const schemaResponse$ = this.getPolicySchemaAPI(schemaNS).pipe(
+      expand (response => response.result["nextPageToken"] ? this.getPolicySchemaAPI(schemaNS, response.result["nextPageToken"]) : EMPTY),
+    );
+    return schemaResponse$.pipe(
+      map(list => {
+        const policyList: Policy[] = [];
         if (list.state === "success"){
           for (const policy of list.result["policySchemas"])
           {
             //console.log(policy)
-            const policySchema: Policy = new Policy();
-            policySchema.schemaName = policy.schemaName;
-            policySchema.categoryTitle = policy.categoryTitle;
-            policySchema.policyDescription = policy.policyDescription;
-            policySchema.policyAPILifeCycleStage = policy.policyApiLifecycle.policyApiLifecycleStage;
+            const policySchema: PolicyData = {
+              schemaName: policy.schemaName,
+              categoryTitle: policy.categoryTitle,
+              policyDescription: policy.policyDescription,
+              policyAPILifeCycleStage: policy.policyApiLifecycle.policyApiLifecycleStage,
+              targetKey: null,
+              fieldDescriptions: [],
+              inheritedOU: "default"
+            }
             if (policy.additionalTargetKeyNames){
               const targetList = []
               for (const target of policy.additionalTargetKeyNames){
@@ -216,10 +176,57 @@ export class CallAPIService {
             policyList.push(policySchema);
           }
         }
-      });
+        return policyList;
+      })
+    );
+  }
+
+  getPolicies(schemaNS: string) {
+    const policyList: Policy[] = [];
+    
+    const schemaResponse$ = this.getPolicySchemaAPI(schemaNS).pipe(
+      expand (response => response.result["nextPageToken"] ? this.getPolicySchemaAPI(schemaNS, response.result["nextPageToken"]) : EMPTY),
+    );
+
+    this.schemaAPISubscription = schemaResponse$.subscribe(list => {
+      // Extract Policy fields from policy schema for display
+      console.log(list);
+      if (list.state === "success"){
+        for (const policy of list.result["policySchemas"])
+        {
+          //console.log(policy)
+          const policySchema: Policy = new Policy();
+          policySchema.schemaName = policy.schemaName;
+          policySchema.categoryTitle = policy.categoryTitle;
+          policySchema.policyDescription = policy.policyDescription;
+          policySchema.policyAPILifeCycleStage = policy.policyApiLifecycle.policyApiLifecycleStage;
+          if (policy.additionalTargetKeyNames){
+            const targetList = []
+            for (const target of policy.additionalTargetKeyNames){
+              targetList.push({ name: target.key, values: []})
+            }
+            policySchema.targetKey = targetList;
+          }
+          
+          for (const field of policy.fieldDescriptions)
+          {
+            const f_obj = {
+              fName: field.field,
+              fValue: field.defaultValue,
+              fDescription: field.description,
+              fType: this.getFieldType(policy.definition.messageType[0].field, field.field),
+              fIsReqd: this.getIsReqd(policy.definition.messageType[0].field, field.field),
+              fEnumList: field.knownValueDescriptions
+            };
+            policySchema.fieldDescriptions.push(f_obj);
+          }
+          policyList.push(policySchema);
+        }
+      }
+    });
 
     
-
+    //Object.freeze(policyList)
     return policyList;
   }
 
@@ -238,14 +245,14 @@ export class CallAPIService {
     }
   }
 
-  getResolvedPolicies (ouid: string, filter: string, oAuthCreds:string){
+  getResolvedPolicies (ouid: string, filter: string){
     //let resPolicies: Policy[] = [];
     
-    const resolveResponse$ = this.getResolveAPI(ouid, filter,"", oAuthCreds).pipe(
+    const resolveResponse$ = this.getResolveAPI(ouid, filter).pipe(
       expand ((response: any) => {
         if (response.state === "success" && response.result["nextPageToken"])
         {
-          return this.getResolveAPI(ouid, filter, response.result["nextPageToken"],oAuthCreds)
+          return this.getResolveAPI(ouid, filter, response.result["nextPageToken"])
         }
         return EMPTY
       })
@@ -254,7 +261,7 @@ export class CallAPIService {
     return resolveResponse$;
   }
 
-  private getResolveAPI(ouid:string, filter: string, token = "", oAuthCreds:string) {
+  private getResolveAPI(ouid:string, filter: string, token = "") {
     const orgid = ouid.split(":").pop();
 
     if (token === ""){
@@ -262,7 +269,8 @@ export class CallAPIService {
           "policyTargetKey": {"targetResource": 'orgunits/'+orgid},
           "policySchemaFilter": filter+'.*'
         }
-      return this.httpClient.post(`${this.policyURL}/v1/customers/my_customer/policies:resolve`,body,{ headers: this.authHeader(oAuthCreds) }).pipe(
+      
+      return this.httpClient.post(`${this.policyURL}/v1/customers/my_customer/policies:resolve`,body,{ headers: this.authHeader() }).pipe(
         map((result) => {
           return {
             state: 'success',
@@ -277,12 +285,7 @@ export class CallAPIService {
         ),
       );
     } else {
-      // const body={
-      //   "policyTargetKey": {"targetResource": 'orgunits/'+orgid},
-      //   "PageToken": token,
-      //   "policySchemaFilter": filter+'.*'
-      // }
-        return this.httpClient.get(`${this.policyURL}/v1/customers/my_customer/policySchemas?pageSize=500&pageToken=${token}`, { headers: this.authHeader(oAuthCreds)}).pipe(
+        return this.httpClient.get(`${this.policyURL}/v1/customers/my_customer/policySchemas?pageSize=500&pageToken=${token}`, { headers: this.authHeader()}).pipe(
           map((result) => {
             return {
               state: 'success',
@@ -299,12 +302,12 @@ export class CallAPIService {
       }
   }
 
-  makeBatchModifyCall(modifyPolicyList: ModifyPolicy[], oAuthCreds:string) {
+  makeBatchModifyCall(modifyPolicyList: ModifyPolicy[]) {
 
       const body={
           "requests": modifyPolicyList
         }
-      return this.httpClient.post(`${this.policyURL}/v1/customers/my_customer/policies/orgunits:batchModify`,body,{ headers: this.authHeader(oAuthCreds) }).pipe(
+      return this.httpClient.post(`${this.policyURL}/v1/customers/my_customer/policies/orgunits:batchModify`,body,{ headers: this.authHeader() }).pipe(
         map((result) => {
           return {
             state: 'success',
@@ -320,12 +323,12 @@ export class CallAPIService {
       );
   }
 
-  makeBatchInheritCall(inheritPolicyList: InheritPolicy[], oAuthCreds:string) {
+  makeBatchInheritCall(inheritPolicyList: InheritPolicy[]) {
 
     const body={
         "requests": inheritPolicyList
       }
-    return this.httpClient.post(`${this.policyURL}/v1/customers/my_customer/policies/orgunits:batchInherit`,body,{ headers: this.authHeader(oAuthCreds) }).pipe(
+    return this.httpClient.post(`${this.policyURL}/v1/customers/my_customer/policies/orgunits:batchInherit`,body,{ headers: this.authHeader() }).pipe(
       map((result) => {
         return {
           state: 'success',

@@ -15,10 +15,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 **********************************/
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CallAPIService } from './services/call-api.service';
-import { Policy } from './dataObj/Policy';
+import { GoogleAuthService } from './services/google-auth.service';
+import { Policy, PolicyData } from './dataObj/Policy';
 import {MatDialog} from '@angular/material/dialog';
 import { PopupComponent } from './popup/popup.component';
 import { OrgData } from './dataObj/OrgData';
@@ -28,130 +29,185 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatToolbarModule } from '@angular/material/toolbar';
-
+import { BehaviorSubject, Observable, Subject, combineLatest, throwError } from 'rxjs';
+import { catchError, filter, map, retry, switchMap } from 'rxjs/operators';
 
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css'],
     standalone: true,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CommonModule, MatToolbarModule, MatFormFieldModule, MatInputModule, MatButtonModule, PolicyListComponent, RouterOutlet],
-    providers:  [ CallAPIService ]
+    providers:  [ CallAPIService ],
 
 })
-export class AppComponent implements OnInit{
+export class AppComponent implements OnInit, OnDestroy{
   title = 'sampleUEMApp';
-  policiesObj: Policy[];
-  oAuthCreds: any;
-  //resolvedPoliciesObj: Policy[];
-  selectedOU = "/";
+  policiesObj$: Observable<PolicyData[]>;
+  private authService = inject(GoogleAuthService);
+  private orgCallSubscription;
+  private resolveCallSubscription;
+  selectedOU$ = new Subject<string>();
+  selectedOU: string = "/";
+  private selectedOUSubscription;
   selectedPolicySchema = 'User Application settings';
-  selectedPolicyNS = "chrome.users.appsconfig";
-  orgList: Array<OrgData> = [];
-  constructor(private service: CallAPIService,private dialog: MatDialog) {
+  selectedPolicyNS$ = new BehaviorSubject("chrome.users.appsconfig");
+  selectedOUandNS$ = combineLatest([this.selectedOU$, this.selectedPolicyNS$]);
+  resolvedPolicies$: Observable<any>;
+  orgList: Array<OrgData>=[];
+  orgList$: Observable<any>;
+  policies$: Observable<Policy[]>;
+  private intervalID;
+
+  constructor(private service: CallAPIService,  private dialog: MatDialog, private cdref: ChangeDetectorRef) {
     console.log("Initialized App component")    
   }
 
   ngOnInit(): void {
-    // @ts-ignore
-    google.accounts.id.initialize({
-      client_id: "258558342955-ngb40ej1pj8b1vi4j24t35870s9bbi9a.apps.googleusercontent.com",
-      callback: this.handleCredentialResponse.bind(this),
-      auto_select: false,
-      cancel_on_tap_outside: true,
+    console.log("App component init")
+    
+    
+    if(this.authService.getProfile()){
+      //this.policiesObj$ = this.service.getPolicies$(this.selectedPolicyNS);
+      this.policiesObj$ = this.selectedPolicyNS$.pipe(
+        switchMap(selectedNS => {
+          return this.service.getPolicies$(selectedNS);
+        })
+      );
 
-    });
-    // @ts-ignore
-    google.accounts.id.renderButton(
-    // @ts-ignore
-    document.getElementById("google-button"),
-      { theme: "outline", size: "large", width: "100%" }
-    );
-    // @ts-ignore
-    google.accounts.id.prompt((notification: PromptMomentNotification) => {});  
-    this.policiesObj = this.service.getPolicies(this.selectedPolicyNS, this.oAuthCreds['credential']);
-    const orgResponse$ = this.service.getOrgListAPI(this.oAuthCreds['credential']);
+      this.resolvedPolicies$ = this.selectedOUandNS$.pipe(
+        switchMap(([selectedOU, selectedNS]) => {
+          return this.service.getResolvedPolicies(this.getOUID(selectedOU), selectedNS);
+        })
+      );
 
-    orgResponse$.subscribe(orgs => {
-        if (orgs.state === "success"){
-          if(orgs.result.organizationUnits && orgs.result.organizationUnits.length > 0){
-              orgs.result.organizationUnits.forEach((item) => {
-                this.orgList.push({
-                  ouid: item.orgUnitId,
-                  path: item.orgUnitPath,
-                  parent: item.parentOrgUnitId,
-                });
-              });
-              //this.orgList.push(this.service.getRootOrg(this.orgList));
+      this.policies$ = combineLatest([this.resolvedPolicies$, this.policiesObj$]).pipe(
+        filter(([resolvedPolicyObj, allPolicyObj])=>{
+          if (resolvedPolicyObj.state != "success" || !resolvedPolicyObj.result.resolvedPolicies){
+            return false;
           }
+          const policy = resolvedPolicyObj.result.resolvedPolicies[0];
+          const index = allPolicyObj.findIndex(item => item.schemaName === policy.value.policySchema);
+          return index > -1;
+        }),
+        map(([resolvedPolicyObj, allPolicyObj])=>{
+          allPolicyObj = allPolicyObj.map(
+            obj => {
+              return {...obj};
+            }
+          );
+          if (resolvedPolicyObj.state === "success" && resolvedPolicyObj.result.resolvedPolicies){
+              
+              for (const policy of resolvedPolicyObj.result.resolvedPolicies)
+              {
+                const index = allPolicyObj.findIndex(item => item.schemaName === policy.value.policySchema);
+                
+                allPolicyObj[index].inheritedOU = policy.sourceKey['targetResource'].split('/').pop();
+                allPolicyObj[index].fieldDescriptions = allPolicyObj[index].fieldDescriptions.map(
+                  fd => {
+                    return {...fd}
+                  }
+                );
+
+                for (const field of Object.keys(policy.value.value)){
+                  for(let i=0; i<allPolicyObj[index].fieldDescriptions.length; i++){
+
+                    if (allPolicyObj[index].fieldDescriptions[i].fName === field){
+                      allPolicyObj[index].fieldDescriptions[i].fValue = policy.value.value[field]
+                    }
+                  }
+                }
+              }
+          }
+          return allPolicyObj;
+        })
+      );
+      
+      this.selectedOUSubscription = this.selectedOU$.subscribe(selectedOU => this.selectedOU = selectedOU);
+
+      //const orgResponse$ = this.service.getOrgListAPI();
+      this.getOrgList(this.service.getOrgListAPI());
+      this.orgCallSubscription = this.orgList$.subscribe(org => {
+            //console.log(typeof orgs)
+            this.orgList = org;
+            this.selectedOU$.next("/");
+            //console.log(this.orgList);
+            //this.cdref.markForCheck();
+          }
+        );
+        //const resolveInitCall$ = this.service.getResolvedPolicies(this.getOUID(this.selectedOU$.value), this.service.getPolicyNameSpace(this.selectedPolicySchema.toString()));
+        //this.resolvePolicy(resolveInitCall$);
+    } else {
+      // TODO Workaround below --  Find the correct way to fix the page empty after sign in issue. 
+      this.intervalID = setInterval(()=> {
+        if(this.authService.getProfile()){
+          this.reloadPage();
         }
-        const resolveInitCall$ = this.service.getResolvedPolicies(this.getOUID(this.selectedOU), this.service.getPolicyNameSpace(this.selectedPolicySchema.toString()),this.oAuthCreds);
-        this.resolvePolicy(resolveInitCall$);
-      }
-    );
-  }
-  
-  async handleCredentialResponse(response: any) {
-    // Here will be your response from Google.
-    this.oAuthCreds = response;
+      },100)
+    }
   }
 
-  // login(){
-  //   this.service.login()
-  // }
-  
+  ngOnDestroy() {
+    this.orgCallSubscription.unsubscribe();
+    this.resolveCallSubscription.unsubscribe();
+    this.selectedOUSubscription.unsubscribe();
+    if(this.intervalID !== undefined){clearInterval(this.intervalID)};
+  }
+
+  signOut(){
+    this.authService.logout();
+    this.reloadPage();
+  }
+
+  getOrgList(orgs: any){
+    //console.log(orgs);
+    this.orgList$ = orgs.pipe(
+      filter((res: any) => res.state === "success"),
+      map((r:any) => r.result.organizationUnits.map(v => ({
+              ouid: v.orgUnitId,
+              path: v.orgUnitPath,
+              parent: v.parentOrgUnitId,
+      }))),
+      catchError(throwError)
+    );
+    
+    //this.orgListX$.subscribe(i => console.log(i));
+  }
+
+  reloadPage(){
+    window.location.reload()
+  }
   openDialog() {
     const categories = this.service.getPolicyCategories();
-    console.log(this.orgList)
     const dialogRef = this.dialog.open(PopupComponent, {
       data: {ouList: this.orgList, schemaList: categories, selectedOU: this.getOUID(this.selectedOU), selectedSchema: this.selectedPolicySchema},
     });
     dialogRef.afterClosed().subscribe(result => {
       console.log('Dialog closed with result: ', result);
-
       if (result) {
         
         if(result.selectedOU != this.getOUID(this.selectedOU) || result.selectedPolicySchema != this.selectedPolicySchema){
-          const resolveCall$ = this.service.getResolvedPolicies(result.selectedOU, this.service.getPolicyNameSpace(result.selectedPolicySchema.toString()),this.oAuthCreds)
-          this.resolvePolicy(resolveCall$);
+          const resolveCall$ = this.service.getResolvedPolicies(result.selectedOU, this.service.getPolicyNameSpace(result.selectedPolicySchema.toString()))
+          //this.resolvePolicy(resolveCall$);
+          this.selectedOU$.next(this.service.getOUName(this.orgList, result.selectedOU.split(":").pop()));
+          this.selectedPolicySchema = result.selectedPolicySchema;
+          this.selectedPolicyNS$.next(this.service.getPolicyNameSpace(this.selectedPolicySchema.toString()));
+          //this.policiesObj$ = this.service.getPolicies$(this.selectedPolicyNS);
         }
-        this.selectedOU =  this.service.getOUName(this.orgList, result.selectedOU.split(":").pop());
-        this.selectedPolicySchema = result.selectedPolicySchema;
-        this.selectedPolicyNS = this.service.getPolicyNameSpace(this.selectedPolicySchema.toString());
-        this.policiesObj = this.service.getPolicies(this.selectedPolicyNS, this.oAuthCreds);
       }
     });
   }
 
-  private resolvePolicy(resolveCall$: any){
-      resolveCall$.subscribe(item => {
-      //resPolicies = item.get("resolvedPolicies");
-        console.log(item)
-        if (item.state === "success" && item.result.resolvedPolicies){
-          for (const policy of item.result.resolvedPolicies)
-          {
-            const index = this.policiesObj.findIndex(item => item.schemaName === policy.value.policySchema);
-            
-            //console.log(index);
-            this.policiesObj[index].inheritedOU = policy.sourceKey['targetResource'].split('/').pop();
-            //console.log(this.policiesObj[index])
-            for (const field of Object.keys(policy.value.value)){
-              for(let i=0; i<this.policiesObj[index].fieldDescriptions.length; i++){
-                // if(this.policiesObj[index]){
-                //   this.policiesObj
-                // }
-                if (this.policiesObj[index].fieldDescriptions[i].fName === field){
-                  this.policiesObj[index].fieldDescriptions[i].fValue = policy.value.value[field]
-                }
-              }
-            }
-          }
-        }
-      });
+  signInWithGoogle() {
+    console.log("Sign In Clicked");
+    this.authService.login();
   }
+  
 
   getOUID(ouname: string){
     let ouid = "";
+    //console.log(this.orgList)
     for (const org of this.orgList){
       //console.log(org.ouid)
       if (org.path === ouname){
@@ -160,6 +216,10 @@ export class AppComponent implements OnInit{
     }
     return ouid;
 
+  }
+
+  policyRefresh(){
+    this.selectedOU$.next(this.selectedOU);
   }
 
 }

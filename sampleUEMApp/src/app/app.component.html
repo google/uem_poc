@@ -22,16 +22,16 @@ limitations under the License.
 
   <mat-form-field class="label-width">
     <mat-label>Selected OU</mat-label>
-    <input matInput disabled [value]="selectedOU">
+    <input matInput disabled [value]="selectedOU$ | async">
   </mat-form-field>
   <mat-form-field class="label-width">
     <mat-label>Selected Category</mat-label>
     <input matInput disabled [value]="selectedPolicySchema">
   </mat-form-field>
   
-  <!--<button mat-raised-button color="warn" *ngIf="this.orgList.length < 1" (click)="this.login()"> Login </button>-->
-  <div class="" id="google-button"></div>
+  <button mat-raised-button color="warn" *ngIf="this.orgList.length < 1" (click)="signInWithGoogle()"> Login </button>
+  <button mat-raised-button color="warn" *ngIf="this.orgList.length > 0" (click)="signOut()"> Logout </button>
 </mat-toolbar>
 
-<app-policy-list [policySchemaNS] = "selectedPolicyNS" [policies]="policiesObj" [orgId]="getOUID(selectedOU)" [ouList]="orgList"></app-policy-list>
+<app-policy-list (submitPolicyUpdateEvent)="policyRefresh()" [policySchemaNS] = "selectedPolicyNS$ | async" [policies]="policies$ | async" [orgId]="getOUID(selectedOU$ | async)" [ouList]="orgList$ | async"></app-policy-list>
 <router-outlet></router-outlet>
