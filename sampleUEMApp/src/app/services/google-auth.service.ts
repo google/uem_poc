@@ -16,7 +16,6 @@ limitations under the License.
 
 **********************************/
 import { Injectable, inject } from '@angular/core';
-import { Router } from '@angular/router';
 import { AuthConfig, OAuthService } from 'angular-oauth2-oidc';
 
 @Injectable({
@@ -24,7 +23,6 @@ import { AuthConfig, OAuthService } from 'angular-oauth2-oidc';
 })
 export class GoogleAuthService {
   private oAuthService = inject(OAuthService);
-  private router = inject(Router);
 
   constructor() {
     this.initConfiguration();
@@ -35,7 +33,7 @@ export class GoogleAuthService {
       issuer: 'https://accounts.google.com',
       strictDiscoveryDocumentValidation: false,
       redirectUri: window.location.origin,
-      clientId: 'ADD CLIENT ID',
+      clientId: 'ADD CLIENT ID HERE',
       scope: 'openid profile email https://www.googleapis.com/auth/chrome.management.policy https://www.googleapis.com/auth/admin.directory.orgunit.readonly'
     };
 
