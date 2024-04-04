@@ -16,7 +16,6 @@ limitations under the License.
 
 **********************************/
 import { Injectable, OnDestroy, inject } from '@angular/core';
-import { AuthConfig } from 'angular-oauth2-oidc';
 import { Policy, PolicyData } from '../dataObj/Policy';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { OrgData } from '../dataObj/OrgData';
@@ -25,14 +24,6 @@ import { ModifyPolicy } from '../dataObj/ModifyPolicy';
 import { InheritPolicy } from '../dataObj/InheritPolicy';
 import { GoogleAuthService } from './google-auth.service';
 
-// const oAuthConfig: AuthConfig = {
-//   issuer: 'https://accounts.google.com',
-//   strictDiscoveryDocumentValidation: false,
-//   redirectUri: window.location.origin,
-//   clientId: '258558342955-ngb40ej1pj8b1vi4j24t35870s9bbi9a.apps.googleusercontent.com',
-//   responseType: 'code',
-//   scope: 'openid profile email https://www.googleapis.com/auth/chrome.management.policy https://www.googleapis.com/auth/admin.directory.orgunit.readonly'
-// }
 
   const filterCategory = new Map([
     ["Users", "chrome.users"],
