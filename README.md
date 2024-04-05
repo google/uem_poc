@@ -4,6 +4,7 @@ The application demonstrates how to:
 1. Use the [Policy Schemas List call](https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas/list) to auto generate the UI (Avoids the need to add individual policies as they are released. The policies will be available on the UI as soon as a new policy is released)
 2. Use the [Batch modify API call](https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies.orgunits/batchModify) to update policies (One API call can be used to update multiple policies. This will reduce the number of required API calls. This helps with any Quota exceeded issues)
 3. Use the [Batch Inherit API call](https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies.orgunits/batchInherit) to inherit policies from parent (Inherit makes it easier for customers to set policies as per the parent OU instead of updating to the actual value. One API call can be used to inherit multiple policies. This will reduce the number of required API calls. This helps with any Quota exceeded issues)
+
 The above listed items are recommended to be implemented by the Policy API team when using the API.
 
 
