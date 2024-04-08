@@ -7,6 +7,8 @@ The application demonstrates how to:
 
 The above listed items are recommended to be implemented by the Policy API team when using the API.
 
+The application currently renders policies under the `User Application Settings` policy category. The work required to render other policy categories is in progress. The application can partially render policies under other policy categories. 
+
 
 ## Pending/Upcoming Tasks
 - Add support for other categories of Policies
@@ -23,7 +25,10 @@ Follow the [setup steps](https://developers.google.com/chrome/policy/guides/setu
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
 
-
-### Build
-
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+### Usage
+- Login to the application with the admin user of your domain
+- After a successful login you will see the policies available which are filtered by the Org Unit and Policy Category
+- You can change the selected Org Unit and Policy Category according to what you want to view
+- If you modify a policy then you can save the changes by hitting the save button
+- If you want to inherit a particular policy from the parent OU then you can use the `Inherit` button and click `Save` to save the changes. Please note that the inherit button will only be enabled if the policy value is not inherited
+-  The `Save` button will save all the policy modifications and policy inherits done on the page
