@@ -49,10 +49,10 @@ export class PolicyListComponent implements OnChanges{
     this._ouList = oList;
   }
   private _ouList: Array<OrgData>;
-  @Input() set policySchemaNS(pSchemaNS: string){
-    this._pSchemaNS = pSchemaNS;
+  @Input() set policySchemaNameSpace(pSchemaNS: string){
+    this._pSchemaNameSpace = pSchemaNS;
   }
-  private _pSchemaNS: string;
+  private _pSchemaNameSpace: string;
 
   policiesToInherit: InheritPolicy[] = [];
   policySchemaForm = this.fb.group({});
@@ -64,8 +64,8 @@ export class PolicyListComponent implements OnChanges{
     
   }
 
-  get policySchemaNS() {
-    return this._pSchemaNS;
+  get policySchemaNameSpace() {
+    return this._pSchemaNameSpace;
   }
 
 
@@ -89,7 +89,6 @@ export class PolicyListComponent implements OnChanges{
     if(changes['orgId'] || changes['policySchemaNS']){
       this.policySchemaForm.controls = {};
     }
-    //this.cdref.markForCheck();
 }
 
   updatePolicy(){
@@ -116,20 +115,17 @@ export class PolicyListComponent implements OnChanges{
           updatePolicyObj.updateMask = Object.keys(policySchemaUpdatedValues).toString();
           
           updatePolicyObj.policyTargetKey = {"targetResource": 'orgunits/'+this.orgId.split(":").pop()};
-          //console.log(updatePolicyObj);
           updatePolicyObjList.push(updatePolicyObj);
         }
       });
       
       if(updatePolicyObjList.length > 0){
-        console.log(updatePolicyObjList)
         const modifyAPIResponse = this.service.makeBatchModifyCall(updatePolicyObjList);
         modifyAPIResponse.subscribe(item => {
           if (item.state === "success"){
             console.log("Modify changes success");
             alert("Modify Changes submitted");
             this.submitPolicyUpdateEvent.emit();
-            //this.cdref.markForCheck();
             progressValue += 50;
             this.closeDialog(dialogRef, progressValue);
           } else {
@@ -148,13 +144,10 @@ export class PolicyListComponent implements OnChanges{
     }
 
     if (this.policiesToInherit.length > 0){
-      //console.log(this.policiesToInherit)
       if(updatePolicyObjList.length > 0){
         // Remove items in the modify list if they are in the inherit list
         this.policiesToInherit.forEach(item => {
-          //console.log(item);
           const index = updatePolicyObjList.findIndex(policyObj => policyObj.policyValue.policySchema === item.policySchema);
-          //console.log(index);
           if(index != -1){
             updatePolicyObjList.splice(index,1);
           }
@@ -197,7 +190,6 @@ export class PolicyListComponent implements OnChanges{
 
   onSubmit() {
     // TODO: Use EventEmitter with form value
-    //console.log(this.policySchemaForm.value);
   }
 
   private getModifyPolicySchemaValue(key: string){
@@ -226,12 +218,5 @@ export class PolicyListComponent implements OnChanges{
       dialogRef.close();
     }
   }
-
-  // private markFormPristine(): void {
-  //   console.log("inside form group")
-  //   Object.keys(this.policySchemaForm.controls).forEach(control => {
-  //       this.policySchemaForm.controls[control].markAsPristine();
-  //   });
-  // }
 
 }

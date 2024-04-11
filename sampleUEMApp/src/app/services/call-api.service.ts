@@ -68,37 +68,22 @@ export class CallAPIService implements OnDestroy{
     
 
   private getPolicySchemaAPI(policyNS: string, token = "") {
-    if (token === ""){
-      return this.httpClient.get(`${this.policyURL}/v1/customers/my_customer/policySchemas?pageSize=500&filter=namespace=${policyNS}`, { headers: this.authHeader() }).pipe(
-        map((result) => {
-          return {
-            state: 'success',
-            result: result,
-          } as any
+    var tokenSuffix = token === "" ? "" : `&pageToken=${token}`;
+    
+    return this.httpClient.get(`${this.policyURL}/v1/customers/my_customer/policySchemas?pageSize=500&filter=namespace=${policyNS}${tokenSuffix}`, { headers: this.authHeader() }).pipe(
+      map((result) => {
+        return {
+          state: 'success',
+          result: result,
+        } as any
+      }),
+      catchError((err) =>
+        of({
+          state: 'error',
+          error: err,
         }),
-        catchError((err) =>
-          of({
-            state: 'error',
-            error: err,
-          }),
-        ),
-      );
-    } else {
-      return this.httpClient.get(`${this.policyURL}/v1/customers/my_customer/policySchemas?pageSize=500&filter=namespace=${policyNS}&pageToken=${token}`, { headers: this.authHeader()}).pipe(
-        map((result) => {
-          return {
-            state: 'success',
-            result: result,
-          } as any
-        }),
-        catchError((err) =>
-          of({
-            state: 'error',
-            error: err,
-          }),
-        ),
-      );
-    }
+      ),
+    );
   }
 
   getOrgListAPI() {
@@ -134,7 +119,6 @@ export class CallAPIService implements OnDestroy{
         if (list.state === "success"){
           for (const policy of list.result["policySchemas"])
           {
-            //console.log(policy)
             const policySchema: PolicyData = {
               schemaName: policy.schemaName,
               categoryTitle: policy.categoryTitle,
@@ -159,7 +143,7 @@ export class CallAPIService implements OnDestroy{
                 fValue: field.defaultValue,
                 fDescription: field.description,
                 fType: this.getFieldType(policy.definition.messageType[0].field, field.field),
-                fIsReqd: this.getIsReqd(policy.definition.messageType[0].field, field.field),
+                fIsReqd: this.isFieldRequired(policy.definition.messageType[0].field, field.field),
                 fEnumList: field.knownValueDescriptions
               };
               policySchema.fieldDescriptions.push(f_obj);
@@ -181,11 +165,9 @@ export class CallAPIService implements OnDestroy{
 
     this.schemaAPISubscription = schemaResponse$.subscribe(list => {
       // Extract Policy fields from policy schema for display
-      console.log(list);
       if (list.state === "success"){
         for (const policy of list.result["policySchemas"])
         {
-          //console.log(policy)
           const policySchema: Policy = new Policy();
           policySchema.schemaName = policy.schemaName;
           policySchema.categoryTitle = policy.categoryTitle;
@@ -206,7 +188,7 @@ export class CallAPIService implements OnDestroy{
               fValue: field.defaultValue,
               fDescription: field.description,
               fType: this.getFieldType(policy.definition.messageType[0].field, field.field),
-              fIsReqd: this.getIsReqd(policy.definition.messageType[0].field, field.field),
+              fIsReqd: this.isFieldRequired(policy.definition.messageType[0].field, field.field),
               fEnumList: field.knownValueDescriptions
             };
             policySchema.fieldDescriptions.push(f_obj);
@@ -216,8 +198,6 @@ export class CallAPIService implements OnDestroy{
       }
     });
 
-    
-    //Object.freeze(policyList)
     return policyList;
   }
 
@@ -226,7 +206,7 @@ export class CallAPIService implements OnDestroy{
     return fieldObj.type;
   }
 
-  private getIsReqd(fList: any, name: any){
+  private isFieldRequired(fList: any, name: any){
     const fieldObj = fList.find(i => i.name === name);
     if (fieldObj.label === "LABEL_OPTIONAL")
     {
@@ -237,7 +217,6 @@ export class CallAPIService implements OnDestroy{
   }
 
   getResolvedPolicies (ouid: string, filter: string){
-    //let resPolicies: Policy[] = [];
     
     const resolveResponse$ = this.getResolveAPI(ouid, filter).pipe(
       expand ((response: any) => {
@@ -254,43 +233,27 @@ export class CallAPIService implements OnDestroy{
 
   private getResolveAPI(ouid:string, filter: string, token = "") {
     const orgid = ouid.split(":").pop();
+    var tokenSuffix = token === "" ? "" : `&pageToken=${token}`;
 
-    if (token === ""){
-      const body={
-          "policyTargetKey": {"targetResource": 'orgunits/'+orgid},
-          "policySchemaFilter": filter+'.*'
-        }
-      
-      return this.httpClient.post(`${this.policyURL}/v1/customers/my_customer/policies:resolve`,body,{ headers: this.authHeader() }).pipe(
-        map((result) => {
-          return {
-            state: 'success',
-            result: result,
-          } as any
-        }),
-        catchError((err) =>
-          of({
-            state: 'error',
-            error: err,
-          }),
-        ),
-      );
-    } else {
-        return this.httpClient.get(`${this.policyURL}/v1/customers/my_customer/policySchemas?pageSize=500&pageToken=${token}`, { headers: this.authHeader()}).pipe(
-          map((result) => {
-            return {
-              state: 'success',
-              result: result,
-            } as any
-          }),
-          catchError((err) =>
-            of({
-              state: 'error',
-              error: err,
-            }),
-          ),
-        );
+    const body={
+        "policyTargetKey": {"targetResource": 'orgunits/'+orgid},
+        "policySchemaFilter": filter+'.*'
       }
+    
+    return this.httpClient.post(`${this.policyURL}/v1/customers/my_customer/policies:resolve?pageSize=500${tokenSuffix}`,body,{ headers: this.authHeader() }).pipe(
+      map((result) => {
+        return {
+          state: 'success',
+          result: result,
+        } as any
+      }),
+      catchError((err) =>
+        of({
+          state: 'error',
+          error: err,
+        }),
+      ),
+    );
   }
 
   makeBatchModifyCall(modifyPolicyList: ModifyPolicy[]) {
@@ -336,15 +299,12 @@ export class CallAPIService implements OnDestroy{
 }
 
   getOUName(orgList: Array<OrgData>, ouid: string){
-    //console.log(orgList)
-    //console.log(ouid)
     let ouName = "/";
     for(let i=0; i<orgList.length; i++){
       if(orgList[i].ouid.split(":").pop() === ouid){
         ouName = orgList[i].path;
       }
     }
-    //console.log(ouName);
     return ouName;
   }
 

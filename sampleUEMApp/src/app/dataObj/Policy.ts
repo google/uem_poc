@@ -21,17 +21,17 @@ export class Policy{
     inheritedOU: string;
     policyDescription: string;
     policyAPILifeCycleStage: string;
-    targetKey: {name: string, values: string[]}[] | null;
-    fieldDescriptions: {fName: string, fDescription: string, fType: string, fValue: any, fIsReqd: boolean, fEnumList: {value:string, description: string}[]}[];
+    targetKey: TargetKey[] | null;
+    fieldDescriptions: Field[];
 
     constructor(policyObj: {
         categoryTitle?: string;
         schemaName?: string;
         inheritedOU?: string;
-        targetKey?: {name: string, values: string[]}[] | null;
+        targetKey?: TargetKey[] | null;
         policyDescription?: string;
         policyAPILifeCycleStage?: string;
-        fieldDescriptions?: {fName: string, fDescription: string, fType: string, fValue: any, fIsReqd: boolean, fEnumList: {value:string, description: string}[]}[];
+        fieldDescriptions?: Field[];
     }={}){
         this.categoryTitle = policyObj.categoryTitle || '';
         this.schemaName = policyObj.schemaName || '';
@@ -50,6 +50,26 @@ export interface PolicyData {
     inheritedOU: string;
     policyDescription: string;
     policyAPILifeCycleStage: string;
-    targetKey: {name: string, values: string[]}[] | null;
-    fieldDescriptions: {fName: string, fDescription: string, fType: string, fValue: any, fIsReqd: boolean, fEnumList: {value:string, description: string}[]}[];
+    targetKey: TargetKey[] | null;
+    fieldDescriptions: Field[];
+}
+
+
+interface TargetKey {
+    name: string;
+    values: string[];
+}
+
+interface Field {
+    fName: string;
+    fDescription: string;
+    fType: string;
+    fValue: any;
+    fIsReqd: boolean;
+    fEnumList: FieldValueOptions[];
+}
+
+interface FieldValueOptions{
+    value:string;
+    description: string;
 }

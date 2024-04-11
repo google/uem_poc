@@ -21,7 +21,7 @@ import { CallAPIService } from './services/call-api.service';
 import { GoogleAuthService } from './services/google-auth.service';
 import { Policy, PolicyData } from './dataObj/Policy';
 import {MatDialog} from '@angular/material/dialog';
-import { PopupComponent } from './popup/popup.component';
+import { SelectPolicyScopeComponent } from './select-policy-scope/select-policy-scope.component';
 import { OrgData } from './dataObj/OrgData';
 import { RouterOutlet } from '@angular/router';
 import { PolicyListComponent } from './policy-list/policy-list.component';
@@ -29,8 +29,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { BehaviorSubject, Observable, Subject, combineLatest, throwError } from 'rxjs';
-import { catchError, filter, map, retry, switchMap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, Subject, Subscription, combineLatest, throwError } from 'rxjs';
+import { catchError, filter, map, switchMap } from 'rxjs/operators';
 
 @Component({
     selector: 'app-root',
@@ -46,11 +46,11 @@ export class AppComponent implements OnInit, OnDestroy{
   title = 'sampleUEMApp';
   policiesObj$: Observable<PolicyData[]>;
   private authService = inject(GoogleAuthService);
-  private orgCallSubscription;
-  private resolveCallSubscription;
+  private orgCallSubscription: Subscription;
+  private resolveCallSubscription: Subscription;
   selectedOU$ = new Subject<string>();
   selectedOU: string = "/";
-  private selectedOUSubscription;
+  private selectedOUSubscription: Subscription;
   selectedPolicySchema = 'User Application settings';
   selectedPolicyNS$ = new BehaviorSubject("chrome.users.appsconfig");
   selectedOUandNS$ = combineLatest([this.selectedOU$, this.selectedPolicyNS$]);
@@ -69,7 +69,6 @@ export class AppComponent implements OnInit, OnDestroy{
     
     
     if(this.authService.getProfile()){
-      //this.policiesObj$ = this.service.getPolicies$(this.selectedPolicyNS);
       this.policiesObj$ = this.selectedPolicyNS$.pipe(
         switchMap(selectedNS => {
           return this.service.getPolicies$(selectedNS);
@@ -126,18 +125,12 @@ export class AppComponent implements OnInit, OnDestroy{
       
       this.selectedOUSubscription = this.selectedOU$.subscribe(selectedOU => this.selectedOU = selectedOU);
 
-      //const orgResponse$ = this.service.getOrgListAPI();
       this.getOrgList(this.service.getOrgListAPI());
       this.orgCallSubscription = this.orgList$.subscribe(org => {
-            //console.log(typeof orgs)
             this.orgList = org;
             this.selectedOU$.next("/");
-            //console.log(this.orgList);
-            //this.cdref.markForCheck();
           }
         );
-        //const resolveInitCall$ = this.service.getResolvedPolicies(this.getOUID(this.selectedOU$.value), this.service.getPolicyNameSpace(this.selectedPolicySchema.toString()));
-        //this.resolvePolicy(resolveInitCall$);
     } else {
       // TODO Workaround below --  Find the correct way to fix the page empty after sign in issue. 
       this.intervalID = setInterval(()=> {
@@ -161,7 +154,6 @@ export class AppComponent implements OnInit, OnDestroy{
   }
 
   getOrgList(orgs: any){
-    //console.log(orgs);
     this.orgList$ = orgs.pipe(
       filter((res: any) => res.state === "success"),
       map((r:any) => r.result.organizationUnits.map(v => ({
@@ -171,8 +163,6 @@ export class AppComponent implements OnInit, OnDestroy{
       }))),
       catchError(throwError)
     );
-    
-    //this.orgListX$.subscribe(i => console.log(i));
   }
 
   reloadPage(){
@@ -180,7 +170,7 @@ export class AppComponent implements OnInit, OnDestroy{
   }
   openDialog() {
     const categories = this.service.getPolicyCategories();
-    const dialogRef = this.dialog.open(PopupComponent, {
+    const dialogRef = this.dialog.open(SelectPolicyScopeComponent, {
       data: {ouList: this.orgList, schemaList: categories, selectedOU: this.getOUID(this.selectedOU), selectedSchema: this.selectedPolicySchema},
     });
     dialogRef.afterClosed().subscribe(result => {
@@ -189,11 +179,9 @@ export class AppComponent implements OnInit, OnDestroy{
         
         if(result.selectedOU != this.getOUID(this.selectedOU) || result.selectedPolicySchema != this.selectedPolicySchema){
           const resolveCall$ = this.service.getResolvedPolicies(result.selectedOU, this.service.getPolicyNameSpace(result.selectedPolicySchema.toString()))
-          //this.resolvePolicy(resolveCall$);
           this.selectedOU$.next(this.service.getOUName(this.orgList, result.selectedOU.split(":").pop()));
           this.selectedPolicySchema = result.selectedPolicySchema;
           this.selectedPolicyNS$.next(this.service.getPolicyNameSpace(this.selectedPolicySchema.toString()));
-          //this.policiesObj$ = this.service.getPolicies$(this.selectedPolicyNS);
         }
       }
     });
@@ -207,9 +195,7 @@ export class AppComponent implements OnInit, OnDestroy{
 
   getOUID(ouname: string){
     let ouid = "";
-    //console.log(this.orgList)
     for (const org of this.orgList){
-      //console.log(org.ouid)
       if (org.path === ouname){
         ouid = org.ouid;
       }

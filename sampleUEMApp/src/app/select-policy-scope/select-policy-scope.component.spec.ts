@@ -17,19 +17,19 @@ limitations under the License.
 **********************************/
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PopupComponent } from './popup.component';
+import { SelectPolicyScopeComponent } from './select-policy-scope.component';
 
 describe('PopupComponent', () => {
-  let component: PopupComponent;
-  let fixture: ComponentFixture<PopupComponent>;
+  let component: SelectPolicyScopeComponent;
+  let fixture: ComponentFixture<SelectPolicyScopeComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [PopupComponent]
+    imports: [SelectPolicyScopeComponent]
 })
     .compileComponents();
 
-    fixture = TestBed.createComponent(PopupComponent);
+    fixture = TestBed.createComponent(SelectPolicyScopeComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

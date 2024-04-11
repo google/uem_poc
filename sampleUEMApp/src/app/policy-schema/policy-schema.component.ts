@@ -18,8 +18,6 @@ limitations under the License.
 import { Component, OnInit, Input, Output, EventEmitter, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { Policy } from '../dataObj/Policy';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
-// import {MatBadgeModule} from '@angular/material/badge';
-//import {MatChipInputEvent, MatChipsModule} from '@angular/material/chips';
 import { PolicyControlService } from '../services/policy-control.service';
 import { CallAPIService } from '../services/call-api.service';
 import { OrgData } from '../dataObj/OrgData';

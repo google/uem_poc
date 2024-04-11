@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 **********************************/
-import { Inject, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Inject, Component, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { OrgData } from '../dataObj/OrgData';
 import { MatButtonModule } from '@angular/material/button';
@@ -25,19 +25,18 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
-    selector: 'app-popup',
-    templateUrl: './popup.component.html',
-    styleUrls: ['./popup.component.css'],
+    selector: 'app-select-policy-scope',
+    templateUrl: './select-policy-scope.component.html',
+    styleUrls: ['./select-policy-scope.component.css'],
     standalone: true,
-    //changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [MatDialogModule, MatFormFieldModule, MatSelectModule, NgFor, MatOptionModule, MatButtonModule]
 })
-export class PopupComponent implements OnInit{
+export class SelectPolicyScopeComponent implements OnInit{
   ouList: Array<OrgData> = [];
   catList: Array<string> = [];
   selectedOU = "/";
   selectedPolicySchema = "Printers";
-  constructor(public dialogRef: MatDialogRef<PopupComponent>,
+  constructor(public dialogRef: MatDialogRef<SelectPolicyScopeComponent>,
     @Inject(MAT_DIALOG_DATA) public data: {ouList: Array<OrgData>, schemaList: string[], selectedOU: string, selectedSchema: string},) {
     
   }

@@ -33,5 +33,5 @@ limitations under the License.
   <button mat-raised-button color="warn" *ngIf="this.orgList.length > 0" (click)="signOut()"> Logout </button>
 </mat-toolbar>
 
-<app-policy-list (submitPolicyUpdateEvent)="policyRefresh()" [policySchemaNS] = "selectedPolicyNS$ | async" [policies]="policies$ | async" [orgId]="getOUID(selectedOU$ | async)" [ouList]="orgList$ | async"></app-policy-list>
+<app-policy-list (submitPolicyUpdateEvent)="policyRefresh()" [policySchemaNameSpace] = "selectedPolicyNS$ | async" [policies]="policies$ | async" [orgId]="getOUID(selectedOU$ | async)" [ouList]="orgList$ | async"></app-policy-list>
 <router-outlet></router-outlet>
