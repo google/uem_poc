@@ -9,6 +9,7 @@ The above listed items are recommended to be implemented by the Policy API team 
 
 The application currently renders policies under the `User Application Settings` policy category. The work required to render other policy categories is in progress. The application can partially render policies under other policy categories. 
 
+This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 15.2.5.
 
 ## Pending/Upcoming Tasks
 - Add support for other categories of Policies

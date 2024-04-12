@@ -60,7 +60,6 @@ export class PolicySchemaComponent implements OnInit{
   ngOnInit() {
     this.form = this.pcs.toFormGroup(this.policyObj);
     this.policyFormEvent.emit(this.form as FormGroup);
-    //console.log(this.form)
   }
 
   get orgList(){

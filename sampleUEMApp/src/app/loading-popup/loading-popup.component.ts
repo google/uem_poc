@@ -32,7 +32,6 @@ import { Inject } from '@angular/core';
 export class LoadingPopupComponent {
   color: ThemePalette = 'primary';
   mode: ProgressSpinnerMode = 'indeterminate';
-  value = 50;
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: {mode:ProgressSpinnerMode, value:number}) {}
+  constructor(@Inject(MAT_DIALOG_DATA) public data: {mode:ProgressSpinnerMode}) {}
 }
