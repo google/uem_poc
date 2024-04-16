@@ -19,7 +19,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { CommonModule } from '@angular/common';
 import { CallAPIService } from './services/call-api.service';
 import { GoogleAuthService } from './services/google-auth.service';
-import { Policy, PolicyData } from './dataObj/Policy';
+import { Policy, PolicyAPIResponse, PolicyData } from './dataObj/Policy';
 import {MatDialog} from '@angular/material/dialog';
 import { SelectPolicyScopeComponent } from './select-policy-scope/select-policy-scope.component';
 import { OrgData } from './dataObj/OrgData';
@@ -54,8 +54,10 @@ export class AppComponent implements OnInit, OnDestroy{
   selectedPolicySchema = 'User Application settings';
   selectedPolicyNS$ = new BehaviorSubject("chrome.users.appsconfig");
   selectedOUandNS$ = combineLatest([this.selectedOU$, this.selectedPolicyNS$]);
+  // TODO remove type 'any'
   resolvedPolicies$: Observable<any>;
   orgList: Array<OrgData>=[];
+  // TODO remove type 'any'
   orgList$: Observable<any>;
   policies$: Observable<Policy[]>;
   private intervalID;
@@ -68,7 +70,16 @@ export class AppComponent implements OnInit, OnDestroy{
     console.log("App component init")
     
     
-    if(this.authService.getProfile()){
+    if(!this.authService.getProfile()){
+      // TODO Workaround below --  Find the correct way to fix the page empty after sign in issue. 
+      this.intervalID = setInterval(()=> {
+        if(this.authService.getProfile()){
+          this.reloadPage();
+        }
+      },100)
+      return;
+    }
+    
       this.policiesObj$ = this.selectedPolicyNS$.pipe(
         switchMap(selectedNS => {
           return this.service.getPolicies$(selectedNS);
@@ -87,25 +98,29 @@ export class AppComponent implements OnInit, OnDestroy{
             return false;
           }
           const policy = resolvedPolicyObj.result.resolvedPolicies[0];
+          // TODO Consider precomputing a map to make searching faster
           const index = allPolicyObj.findIndex(item => item.schemaName === policy.value.policySchema);
           return index > -1;
         }),
         map(([resolvedPolicyObj, allPolicyObj])=>{
           allPolicyObj = allPolicyObj.map(
+            // TODO Consider deep copy instead of shallow copy allPolicyObj = JSON.parse(JSON.stringify(allPolicyObj))
             obj => {
-              return {...obj};
+              return JSON.parse(JSON.stringify(obj));//{...obj};
             }
           );
           if (resolvedPolicyObj.state === "success" && resolvedPolicyObj.result.resolvedPolicies){
               
               for (const policy of resolvedPolicyObj.result.resolvedPolicies)
               {
+                // TODO Consider precomputing a map to make searching faster
                 const index = allPolicyObj.findIndex(item => item.schemaName === policy.value.policySchema);
                 
                 allPolicyObj[index].inheritedOU = policy.sourceKey['targetResource'].split('/').pop();
                 allPolicyObj[index].fieldDescriptions = allPolicyObj[index].fieldDescriptions.map(
+                  // TODO Consider deep copy instead of shallow copy
                   fd => {
-                    return {...fd}
+                    return JSON.parse(JSON.stringify(fd)); //{...fd}
                   }
                 );
 
@@ -131,14 +146,6 @@ export class AppComponent implements OnInit, OnDestroy{
             this.selectedOU$.next("/");
           }
         );
-    } else {
-      // TODO Workaround below --  Find the correct way to fix the page empty after sign in issue. 
-      this.intervalID = setInterval(()=> {
-        if(this.authService.getProfile()){
-          this.reloadPage();
-        }
-      },100)
-    }
   }
 
   ngOnDestroy() {
@@ -153,9 +160,10 @@ export class AppComponent implements OnInit, OnDestroy{
     this.reloadPage();
   }
 
-  getOrgList(orgs: any){
+  getOrgList(orgs: Observable<PolicyAPIResponse>){
     this.orgList$ = orgs.pipe(
-      filter((res: any) => res.state === "success"),
+      filter((res: PolicyAPIResponse) => res.state === "success"),
+      // TODO remove type 'any'
       map((r:any) => r.result.organizationUnits.map(v => ({
               ouid: v.orgUnitId,
               path: v.orgUnitPath,
@@ -178,7 +186,6 @@ export class AppComponent implements OnInit, OnDestroy{
       if (result) {
         
         if(result.selectedOU != this.getOUID(this.selectedOU) || result.selectedPolicySchema != this.selectedPolicySchema){
-          const resolveCall$ = this.service.getResolvedPolicies(result.selectedOU, this.service.getPolicyNameSpace(result.selectedPolicySchema.toString()))
           this.selectedOU$.next(this.service.getOUName(this.orgList, result.selectedOU.split(":").pop()));
           this.selectedPolicySchema = result.selectedPolicySchema;
           this.selectedPolicyNS$.next(this.service.getPolicyNameSpace(this.selectedPolicySchema.toString()));
@@ -195,10 +202,10 @@ export class AppComponent implements OnInit, OnDestroy{
 
   getOUID(ouname: string){
     let ouid = "";
-    for (const org of this.orgList){
-      if (org.path === ouname){
-        ouid = org.ouid;
-      }
+    // TODO Consider precomputing a map to make searching faster
+    const i = this.orgList.findIndex(e => e.path === ouname);
+    if (i > -1) {
+      ouid = this.orgList[i].ouid;
     }
     return ouid;
 

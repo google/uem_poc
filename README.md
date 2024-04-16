@@ -17,6 +17,8 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 - Add retry and exponential backoff logic in case of API call failures related to API Quota limits
 - Add unit tests
 - Add better comments where needed
+- Add capability to revert values to Google default
+- Address TODO comments in the code
 
 ## How to use this app
 ### Prerequisites

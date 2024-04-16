@@ -54,6 +54,11 @@ export interface PolicyData {
     fieldDescriptions: Field[];
 }
 
+export interface PolicyAPIResponse{
+    state:string;
+    result:Object;
+    error: any;
+}
 
 interface TargetKey {
     name: string;
@@ -73,3 +78,4 @@ interface FieldValueOptions{
     value:string;
     description: string;
 }
+

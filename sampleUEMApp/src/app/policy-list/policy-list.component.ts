@@ -118,32 +118,12 @@ export class PolicyListComponent implements OnChanges{
           updatePolicyObjList.push(updatePolicyObj);
         }
       });
-      
-      if(updatePolicyObjList.length > 0){
-        const modifyAPIResponse = this.service.makeBatchModifyCall(updatePolicyObjList);
-        modifyAPIResponse.subscribe(item => {
-          if (item.state === "success"){
-            console.log("Modify changes success");
-            alert("Modify Changes submitted");
-            this.submitPolicyUpdateEvent.emit();
-            progressValue += 50;
-            this.closeDialog(dialogRef, progressValue);
-          } else {
-            alert("Error when modifying: " + item.error.error.error.message);
-            progressValue += 50;
-            this.closeDialog(dialogRef, progressValue);
-          }
-        });
-      } else {
-        progressValue += 50;
-        this.closeDialog(dialogRef, progressValue);
-      }
-    } else {
-      progressValue += 50;
-      this.closeDialog(dialogRef, progressValue);
     }
-
     if (this.policiesToInherit.length > 0){
+      console.log("Policies to modify")
+      console.log(updatePolicyObjList)
+      console.log("Policies to inherit")
+      console.log(this.policiesToInherit)
       if(updatePolicyObjList.length > 0){
         // Remove items in the modify list if they are in the inherit list
         this.policiesToInherit.forEach(item => {
@@ -160,20 +140,34 @@ export class PolicyListComponent implements OnChanges{
           this.policiesToInherit = [];
           alert("Inherit Changes submitted");
           this.submitPolicyUpdateEvent.emit();
-          progressValue += 50;
-          this.closeDialog(dialogRef, progressValue);
         } else {
           alert("Error when modifying: " + item.error.error.error.message);
+        }
+        progressValue += 50;
+        this.closeDialog(dialogRef, progressValue);
+      });
+    } else {progressValue += 50;}
+
+    if(updatePolicyObjList.length > 0){
+      console.log("Policies to modify")
+      console.log(updatePolicyObjList)
+      const modifyAPIResponse = this.service.makeBatchModifyCall(updatePolicyObjList);
+
+      modifyAPIResponse.subscribe(item => {
+          if (item.state === "success"){
+            console.log("Modify changes success");
+            alert("Modify Changes submitted");
+            this.submitPolicyUpdateEvent.emit();
+          } else {
+            alert("Error when modifying: " + item.error.error.error.message);
+          }
           progressValue += 50;
           this.closeDialog(dialogRef, progressValue);
         }
-      });
-    } else {
-      progressValue += 50;
-      this.closeDialog(dialogRef, progressValue);
-    }
-    this.cdref.markForCheck();
+      );
+    } else {progressValue += 50;}
 
+    this.closeDialog(dialogRef, progressValue);
   }
 
   addGroup(policyName:string, newItem: FormGroup) {

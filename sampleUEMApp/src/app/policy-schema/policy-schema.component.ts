@@ -83,9 +83,7 @@ export class PolicySchemaComponent implements OnInit{
   }
 
   isInherited(policyOID: string){
-    if(policyOID === "default" || this.service.getOUName(this.orgList, this.selectedOUID.split(":").pop()) === '/'){
-      return true;
-    } else if (policyOID != this.selectedOUID.split(":").pop()){
+    if (this.getOUName(policyOID) === 'root' || policyOID != this.selectedOUID.split(":").pop()){
       return true;
     } else {
       return false;

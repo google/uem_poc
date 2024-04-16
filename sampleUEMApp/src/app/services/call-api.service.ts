@@ -16,7 +16,7 @@ limitations under the License.
 
 **********************************/
 import { Injectable, OnDestroy, inject } from '@angular/core';
-import { Policy, PolicyData } from '../dataObj/Policy';
+import { Policy, PolicyData, PolicyAPIResponse } from '../dataObj/Policy';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { OrgData } from '../dataObj/OrgData';
 import { map, of, catchError, expand, EMPTY } from 'rxjs';
@@ -75,13 +75,13 @@ export class CallAPIService implements OnDestroy{
         return {
           state: 'success',
           result: result,
-        } as any
+        } as PolicyAPIResponse
       }),
       catchError((err) =>
         of({
           state: 'error',
           error: err,
-        }),
+        } as PolicyAPIResponse),
       ),
     );
   }
@@ -92,13 +92,13 @@ export class CallAPIService implements OnDestroy{
           return {
             state: 'success',
             result: result,
-          } as any
+          } as PolicyAPIResponse
         }),
         catchError((err) =>
           of({
             state: 'error',
             error: err,
-          }),
+          } as PolicyAPIResponse),
         ),
       );
   }
@@ -245,13 +245,13 @@ export class CallAPIService implements OnDestroy{
         return {
           state: 'success',
           result: result,
-        } as any
+        } as PolicyAPIResponse
       }),
       catchError((err) =>
         of({
           state: 'error',
           error: err,
-        }),
+        } as PolicyAPIResponse),
       ),
     );
   }
@@ -266,13 +266,13 @@ export class CallAPIService implements OnDestroy{
           return {
             state: 'success',
             result: result,
-          } as any
+          } as PolicyAPIResponse
         }),
         catchError((err) =>
           of({
             state: 'error',
             error: err,
-          }),
+          } as PolicyAPIResponse),
         ),
       );
   }
@@ -287,16 +287,16 @@ export class CallAPIService implements OnDestroy{
         return {
           state: 'success',
           result: result,
-        } as any
+        } as PolicyAPIResponse
       }),
       catchError((err) =>
         of({
           state: 'error',
           error: err,
-        }),
+        } as PolicyAPIResponse),
       ),
     );
-}
+  }
 
   getOUName(orgList: Array<OrgData>, ouid: string){
     let ouName = "/";
