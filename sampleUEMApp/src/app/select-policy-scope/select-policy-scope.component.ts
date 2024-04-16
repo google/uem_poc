@@ -42,7 +42,6 @@ export class SelectPolicyScopeComponent implements OnInit{
   }
 
   ngOnInit() {
-    //console.log(this.data);
     this.ouList = this.data.ouList;
     this.catList = this.data.schemaList;
     this.selectedOU = this.data.selectedOU;
