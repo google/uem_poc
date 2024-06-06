@@ -35,3 +35,6 @@ Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The appli
 - If you modify a policy then you can save the changes by hitting the save button
 - If you want to inherit a particular policy from the parent OU then you can use the `Inherit` button and click `Save` to save the changes. Please note that the inherit button will only be enabled if the policy value is not inherited
 -  The `Save` button will save all the policy modifications and policy inherits done on the page
+
+### Disclaimer
+This is not an officially supported Google product
