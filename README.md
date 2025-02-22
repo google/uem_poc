@@ -38,3 +38,6 @@ Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The appli
 
 ### Disclaimer
 This is not an officially supported Google product
+
+### Author
+Ashish Pujari
